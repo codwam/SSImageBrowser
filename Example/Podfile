@@ -10,7 +10,7 @@ post_install do |installer|
     `find Pods -regex 'Pods/pop.*\\.h' -print0 | xargs -0 sed -i '' 's/\\(<\\)pop\\/\\(.*\\)\\(>\\)/\\"\\2\\"/'`
 end
 
-target 'SSImageBrowser_Example', :exclusive => true do
+target 'SSImageBrowser_Example' do
   pod "SSImageBrowser", :path => "../"
 end
 
