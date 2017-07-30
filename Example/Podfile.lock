@@ -1,9 +1,9 @@
 PODS:
   - DACircularProgress (2.3.1)
-  - pop (1.0.9)
-  - SDWebImage (3.8.1):
-    - SDWebImage/Core (= 3.8.1)
-  - SDWebImage/Core (3.8.1)
+  - pop (1.0.10)
+  - SDWebImage (4.0.0):
+    - SDWebImage/Core (= 4.0.0)
+  - SDWebImage/Core (4.0.0)
   - SSImageBrowser (2.0.5):
     - DACircularProgress
     - pop
@@ -18,10 +18,10 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   DACircularProgress: 4dd437c0fc3da5161cb289e07ac449493d41db71
-  pop: f667631a5108a2e60d9e8797c9b32ddaf2080bce
-  SDWebImage: 35f9627a3e44b4f292a8a8ce6a531fa488239b91
+  pop: 82ca6b068ce9278fd350fd9dd09482a0ce9492e6
+  SDWebImage: 76a6348bdc74eb5a55dd08a091ef298e56b55e41
   SSImageBrowser: a5ba24c043f2894fafb5ac32aa437612af322164
 
 PODFILE CHECKSUM: 0d47ddf36d465643417acbee84081f4e7d595102
 
-COCOAPODS: 1.0.1
+COCOAPODS: 1.2.1

@@ -13,27 +13,27 @@ class TableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let tableViewFooter = UIView(frame:CGRectMake(0, 0, 320, 426 * 0.9 + 40))
+        let tableViewFooter = UIView(frame:CGRect(x: 0, y: 0, width: 320, height: 426 * 0.9 + 40))
         
-        let buttonWithImageOnScreen1 = UIButton(type: .Custom)
-        buttonWithImageOnScreen1.frame = CGRectMake(15, 0, 640/3 * 0.9, 426/2 * 0.9)
+        let buttonWithImageOnScreen1 = UIButton(type: .custom)
+        buttonWithImageOnScreen1.frame = CGRect(x: 15, y: 0, width: 640/3 * 0.9, height: 426/2 * 0.9)
         buttonWithImageOnScreen1.tag = 101
         buttonWithImageOnScreen1.adjustsImageWhenHighlighted = false
-        buttonWithImageOnScreen1.setImage(UIImage(named: "photo1m.jpg"), forState: .Normal)
+        buttonWithImageOnScreen1.setImage(UIImage(named: "photo1m.jpg"), for: UIControlState())
         
-        buttonWithImageOnScreen1.imageView?.contentMode = .ScaleAspectFit
-        buttonWithImageOnScreen1.backgroundColor = UIColor.blackColor()
-        buttonWithImageOnScreen1.addTarget(self, action: #selector(buttonWithImageOnScreenPressed(_:)), forControlEvents: .TouchUpInside)
+        buttonWithImageOnScreen1.imageView?.contentMode = .scaleAspectFit
+        buttonWithImageOnScreen1.backgroundColor = UIColor.black
+        buttonWithImageOnScreen1.addTarget(self, action: #selector(buttonWithImageOnScreenPressed(_:)), for: .touchUpInside)
         tableViewFooter.addSubview(buttonWithImageOnScreen1)
         
-        let buttonWithImageOnScreen2 = UIButton(type: .Custom)
-        buttonWithImageOnScreen2.frame = CGRectMake(15, 426/2 * 0.9 + 20, 640/2 * 0.9, 426/2 * 0.9)
+        let buttonWithImageOnScreen2 = UIButton(type: .custom)
+        buttonWithImageOnScreen2.frame = CGRect(x: 15, y: 426/2 * 0.9 + 20, width: 640/2 * 0.9, height: 426/2 * 0.9)
         buttonWithImageOnScreen2.tag = 102
         buttonWithImageOnScreen2.adjustsImageWhenHighlighted = false
-        buttonWithImageOnScreen2.setImage(UIImage(named: "photo3m.jpg"), forState: .Normal)
-        buttonWithImageOnScreen2.imageView?.contentMode = .ScaleAspectFit
-        buttonWithImageOnScreen2.backgroundColor = UIColor.blackColor()
-        buttonWithImageOnScreen2.addTarget(self, action: #selector(buttonWithImageOnScreenPressed(_:)), forControlEvents: .TouchUpInside)
+        buttonWithImageOnScreen2.setImage(UIImage(named: "photo3m.jpg"), for: UIControlState())
+        buttonWithImageOnScreen2.imageView?.contentMode = .scaleAspectFit
+        buttonWithImageOnScreen2.backgroundColor = UIColor.black
+        buttonWithImageOnScreen2.addTarget(self, action: #selector(buttonWithImageOnScreenPressed(_:)), for: .touchUpInside)
         tableViewFooter.addSubview(buttonWithImageOnScreen2)
         
         self.tableView.tableFooterView = tableViewFooter
@@ -46,13 +46,13 @@ class TableViewController: UITableViewController {
     
     // MARK: - Table view data source
     
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    override func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Potentially incomplete method implementation.
         // Return the number of sections.
         return 3
     }
     
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete method implementation.
         // Return the number of rows in the section.
         var rows = 0
@@ -68,7 +68,7 @@ class TableViewController: UITableViewController {
         
         return rows
     }
-    override func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         var atitle = ""
         
         if(section == 0) {
@@ -84,11 +84,11 @@ class TableViewController: UITableViewController {
     }
     
     
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let   CellIdentifier = "Cell"
-        var cell = tableView.dequeueReusableCellWithIdentifier(CellIdentifier)
+        var cell = tableView.dequeueReusableCell(withIdentifier: CellIdentifier)
         if cell == nil {
-            cell = UITableViewCell(style:.Default, reuseIdentifier:CellIdentifier)
+            cell = UITableViewCell(style:.default, reuseIdentifier:CellIdentifier)
         }
         
         // Configure
@@ -110,7 +110,7 @@ class TableViewController: UITableViewController {
     }
     
     
-    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 
             // Create an array to store IDMPhoto objects
         var photos = [SSPhoto]()
@@ -118,36 +118,36 @@ class TableViewController: UITableViewController {
         var photo:SSPhoto!
         
         if indexPath.section == 0 { // Local photo
-            photo = SSPhoto(filePath: NSBundle.mainBundle().pathForResource("photo2l", ofType: "jpg")!)
+            photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo2l", ofType: "jpg")!)
             photo.aCaption = "The London Eye is a giant Ferris wheel situated on the banks of the River Thames, in London, England."
             photos.append(photo)
         } else if indexPath.section == 1 { // Multiple photos
             
             if indexPath.row == 0 {// Local Photos
                 
-                photo = SSPhoto(filePath: NSBundle.mainBundle().pathForResource("photo1l", ofType: "jpg")!)
+                photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo1l", ofType: "jpg")!)
                 photo.aCaption = "Grotto of the Madonna"
                 photos.append(photo)
                 
-                photo = SSPhoto(filePath: NSBundle.mainBundle().pathForResource("photo2l", ofType: "jpg")!)
+                photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo2l", ofType: "jpg")!)
                 photo.aCaption = "The London Eye is a giant Ferris wheel situated on the banks of the River Thames, in London, England."
                 photos.append(photo)
                 
-                photo = SSPhoto(filePath: NSBundle.mainBundle().pathForResource("photo3l", ofType: "jpg")!)
+                photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo3l", ofType: "jpg")!)
                 photo.aCaption = "York Floods"
                 photos.append(photo)
                 
-                photo = SSPhoto(filePath: NSBundle.mainBundle().pathForResource("photo4l", ofType: "jpg")!)
+                photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo4l", ofType: "jpg")!)
                 photo.aCaption = "Campervan"
                 photos.append(photo)
                 
             } else if(indexPath.row == 1 || indexPath.row == 2) {// Photos from Flickr or Flickr - Custom
 
                     let photosWithURL = SSPhoto.photosWithURLs([
-                        NSURL(string: "http://farm4.static.flickr.com/3567/3523321514_371d9ac42f_b.jpg")!,
-                        NSURL(string: "http://farm4.static.flickr.com/3629/3339128908_7aecabc34b_b.jpg")!,
-                        NSURL(string: "http://farm4.static.flickr.com/3364/3338617424_7ff836d55f_b.jpg")!,
-                        NSURL(string: "http://farm4.static.flickr.com/3590/3329114220_5fbc5bc92b_b.jpg")!
+                        URL(string: "http://farm4.static.flickr.com/3567/3523321514_371d9ac42f_b.jpg")!,
+                        URL(string: "http://farm4.static.flickr.com/3629/3339128908_7aecabc34b_b.jpg")!,
+                        URL(string: "http://farm4.static.flickr.com/3364/3338617424_7ff836d55f_b.jpg")!,
+                        URL(string: "http://farm4.static.flickr.com/3590/3329114220_5fbc5bc92b_b.jpg")!
                         ])
             
                     photos += photosWithURL
@@ -183,7 +183,7 @@ class TableViewController: UITableViewController {
             
             // Show
         self.presentViewController(browser, animated: true, completion: nil)
-        self.tableView.deselectRowAtIndexPath(indexPath, animated: true)
+        self.tableView.deselectRow(at: indexPath, animated: true)
         
 
     }
@@ -233,35 +233,35 @@ class TableViewController: UITableViewController {
     // Pass the selected object to the new view controller.
     }
     */
-    func buttonWithImageOnScreenPressed(buttonSender:UIButton) {
+    func buttonWithImageOnScreenPressed(_ buttonSender:UIButton) {
         
         // Create an array to store IDMPhoto objects
         var photos = [SSPhoto]()
         var photo:SSPhoto!
         
         if buttonSender.tag == 101  {
-            photo = SSPhoto(filePath: NSBundle.mainBundle().pathForResource("photo1l", ofType: "jpg")!)
+            photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo1l", ofType: "jpg")!)
             photo.aCaption = "Grotto of the Madonna"
             photos.append(photo)
         }
         
         
-        photo = SSPhoto(filePath: NSBundle.mainBundle().pathForResource("photo3l", ofType: "jpg")!)
+        photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo3l", ofType: "jpg")!)
         photo.aCaption = "York Floods"
         photos.append(photo)
         
         
-        photo = SSPhoto(filePath: NSBundle.mainBundle().pathForResource("photo2l", ofType: "jpg")!)
+        photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo2l", ofType: "jpg")!)
         photo.aCaption = "The London Eye is a giant Ferris wheel situated on the banks of the River Thames, in London, England."
         photos.append(photo)
         
         
-        photo = SSPhoto(filePath: NSBundle.mainBundle().pathForResource("photo4l", ofType: "jpg")!)
+        photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo4l", ofType: "jpg")!)
         photo.aCaption = "Campervan"
         photos.append(photo)
         
         if buttonSender.tag == 102 {
-            photo = SSPhoto(filePath: NSBundle.mainBundle().pathForResource("photo1l", ofType: "jpg")!)
+            photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo1l", ofType: "jpg")!)
             photo.aCaption = "Grotto of the Madonna"
             photos.append(photo)
         }
@@ -285,23 +285,23 @@ class TableViewController: UITableViewController {
 }
 
 extension TableViewController: SSImageBrowserDelegate {
-    func photoBrowser(photoBrowser: SSImageBrowser, captionViewForPhotoAtIndex index: Int) -> SSCaptionView! {
+    func photoBrowser(_ photoBrowser: SSImageBrowser, captionViewForPhotoAtIndex index: Int) -> SSCaptionView! {
         return nil
     }
     
-    func photoBrowser(photoBrowser: SSImageBrowser, didDismissActionSheetWithButtonIndex index: Int, photoIndex: Int) {
+    func photoBrowser(_ photoBrowser: SSImageBrowser, didDismissActionSheetWithButtonIndex index: Int, photoIndex: Int) {
         
     }
     
-    func photoBrowser(photoBrowser: SSImageBrowser, didDismissAtPageIndex index: Int) {
+    func photoBrowser(_ photoBrowser: SSImageBrowser, didDismissAtPageIndex index: Int) {
         
     }
     
-    func photoBrowser(photoBrowser:SSImageBrowser, didShowPhotoAtIndex index:Int) {
+    func photoBrowser(_ photoBrowser:SSImageBrowser, didShowPhotoAtIndex index:Int) {
         
     }
     
-    func photoBrowser(photoBrowser:SSImageBrowser, willDismissAtPageIndex index:Int) {
+    func photoBrowser(_ photoBrowser:SSImageBrowser, willDismissAtPageIndex index:Int) {
         
     }
     

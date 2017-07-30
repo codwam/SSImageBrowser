@@ -45,7 +45,7 @@ public final class SSPhoto: NSObject {
     
     override init() {
         super.init()
-        NSNotificationCenter.defaultCenter().addObserverForName("stopAllRequest", object: nil, queue: NSOperationQueue.mainQueue()) {[weak self] (_) -> Void in
+        NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "stopAllRequest"), object: nil, queue: OperationQueue.main) {[weak self] (_) -> Void in
             self?.cancelRequest()
         }
     }
