@@ -118,36 +118,36 @@ class TableViewController: UITableViewController {
         var photo:SSPhoto!
         
         if indexPath.section == 0 { // Local photo
-            photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo2l", ofType: "jpg")!)
+            photo = SSPhoto(filePath: Bundle.main.path(forResource: "photo2l", ofType: "jpg")!)
             photo.aCaption = "The London Eye is a giant Ferris wheel situated on the banks of the River Thames, in London, England."
             photos.append(photo)
         } else if indexPath.section == 1 { // Multiple photos
             
             if indexPath.row == 0 {// Local Photos
                 
-                photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo1l", ofType: "jpg")!)
+                photo = SSPhoto(filePath: Bundle.main.path(forResource: "photo1l", ofType: "jpg")!)
                 photo.aCaption = "Grotto of the Madonna"
                 photos.append(photo)
                 
-                photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo2l", ofType: "jpg")!)
+                photo = SSPhoto(filePath: Bundle.main.path(forResource: "photo2l", ofType: "jpg")!)
                 photo.aCaption = "The London Eye is a giant Ferris wheel situated on the banks of the River Thames, in London, England."
                 photos.append(photo)
                 
-                photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo3l", ofType: "jpg")!)
+                photo = SSPhoto(filePath: Bundle.main.path(forResource: "photo3l", ofType: "jpg")!)
                 photo.aCaption = "York Floods"
                 photos.append(photo)
                 
-                photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo4l", ofType: "jpg")!)
+                photo = SSPhoto(filePath: Bundle.main.path(forResource: "photo4l", ofType: "jpg")!)
                 photo.aCaption = "Campervan"
                 photos.append(photo)
                 
             } else if(indexPath.row == 1 || indexPath.row == 2) {// Photos from Flickr or Flickr - Custom
 
-                    let photosWithURL = SSPhoto.photosWithURLs([
-                        URL(string: "http://farm4.static.flickr.com/3567/3523321514_371d9ac42f_b.jpg")!,
-                        URL(string: "http://farm4.static.flickr.com/3629/3339128908_7aecabc34b_b.jpg")!,
-                        URL(string: "http://farm4.static.flickr.com/3364/3338617424_7ff836d55f_b.jpg")!,
-                        URL(string: "http://farm4.static.flickr.com/3590/3329114220_5fbc5bc92b_b.jpg")!
+                    let photosWithURL = SSPhoto.photosWithURLs(urlsArray: [
+                        URL(string: "http://farm4.static.flickr.com/3567/3523321514_371d9ac42f_b.jpg")! as NSURL,
+                        URL(string: "http://farm4.static.flickr.com/3629/3339128908_7aecabc34b_b.jpg")! as NSURL,
+                        URL(string: "http://farm4.static.flickr.com/3364/3338617424_7ff836d55f_b.jpg")! as NSURL,
+                        URL(string: "http://farm4.static.flickr.com/3590/3329114220_5fbc5bc92b_b.jpg")! as NSURL
                         ])
             
                     photos += photosWithURL
@@ -182,7 +182,7 @@ class TableViewController: UITableViewController {
             }
             
             // Show
-        self.presentViewController(browser, animated: true, completion: nil)
+        self.present(browser, animated: true, completion: nil)
         self.tableView.deselectRow(at: indexPath, animated: true)
         
 
@@ -240,28 +240,28 @@ class TableViewController: UITableViewController {
         var photo:SSPhoto!
         
         if buttonSender.tag == 101  {
-            photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo1l", ofType: "jpg")!)
+            photo = SSPhoto(filePath: Bundle.main.path(forResource: "photo1l", ofType: "jpg")!)
             photo.aCaption = "Grotto of the Madonna"
             photos.append(photo)
         }
         
         
-        photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo3l", ofType: "jpg")!)
+        photo = SSPhoto(filePath: Bundle.main.path(forResource: "photo3l", ofType: "jpg")!)
         photo.aCaption = "York Floods"
         photos.append(photo)
         
         
-        photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo2l", ofType: "jpg")!)
+        photo = SSPhoto(filePath: Bundle.main.path(forResource: "photo2l", ofType: "jpg")!)
         photo.aCaption = "The London Eye is a giant Ferris wheel situated on the banks of the River Thames, in London, England."
         photos.append(photo)
         
         
-        photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo4l", ofType: "jpg")!)
+        photo = SSPhoto(filePath: Bundle.main.path(forResource: "photo4l", ofType: "jpg")!)
         photo.aCaption = "Campervan"
         photos.append(photo)
         
         if buttonSender.tag == 102 {
-            photo = SSPhoto(filePath: Bundle.mainBundle().pathForResource("photo1l", ofType: "jpg")!)
+            photo = SSPhoto(filePath: Bundle.main.path(forResource: "photo1l", ofType: "jpg")!)
             photo.aCaption = "Grotto of the Madonna"
             photos.append(photo)
         }
@@ -279,7 +279,7 @@ class TableViewController: UITableViewController {
         }
         
         // Show
-        self.presentViewController(browser, animated: true, completion: nil)
+        self.present(browser, animated: true, completion: nil)
     }
     
 }

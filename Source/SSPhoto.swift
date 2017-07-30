@@ -15,12 +15,12 @@ public final class SSPhoto: NSObject {
     public var progressUpdateBlock: SSProgressUpdateBlock!
     public var aPlaceholderImage: UIImage!
     
-    private var aUnderlyingImage: UIImage!
-    private var loadingInProgress: Bool!
+    fileprivate var aUnderlyingImage: UIImage!
+    fileprivate var loadingInProgress: Bool!
     public var  photoPath: String!
     public var asset: PHAsset!
     public var targetSize: CGSize!
-    private var requestId: PHImageRequestID!
+    fileprivate var requestId: PHImageRequestID!
     
     convenience public init(image: UIImage) {
         self.init()
@@ -56,20 +56,25 @@ public final class SSPhoto: NSObject {
     
     func cancelRequest() {
         if let id = requestId {
-            PHImageManager.defaultManager().cancelImageRequest(id)
+            PHImageManager.default().cancelImageRequest(id)
         }
     }
 }
 // MARK: - NSURLSessionDelegate
-extension SSPhoto: NSURLSessionDownloadDelegate{
-    public func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didFinishDownloadingToURL location: NSURL) {
-        let downloadedImage = UIImage(data: NSData(contentsOfURL: location)!)
-        self.aUnderlyingImage = downloadedImage
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-            self.imageLoadingComplete()
-        })
+extension SSPhoto: URLSessionDownloadDelegate{
+    
+    public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        
     }
-    public func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+
+    public func URLSession(session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingToURL location: URL) {
+        let downloadedImage = UIImage(data: try! Data(contentsOf: location))
+        self.aUnderlyingImage = downloadedImage
+        DispatchQueue.global().async {
+            self.imageLoadingComplete()
+        }
+    }
+    public func URLSession(session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
         let progress = CGFloat(totalBytesWritten)/CGFloat(totalBytesExpectedToWrite)
         progressUpdateBlock?(progress)
     }
@@ -139,27 +144,28 @@ extension SSPhoto {
             imageLoadingComplete()
         }else{
             if let _ = photoPath {
-                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
+                DispatchQueue.global().async {
                     self.loadImageFromFileAsync()
-                })
+                }
             } else if let url = photoURL {
                 let key = url.absoluteString
                 
-                if let cache = SDImageCache.sharedImageCache().imageFromDiskCacheForKey(key) {
-                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(0.2 * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) { () -> Void in
+                if let cache = SDImageCache.shared().imageFromDiskCache(forKey: key) {
+                    let deadline = DispatchTime.now() + 0.2
+                    DispatchQueue.main.asyncAfter(deadline: deadline, execute: { 
                         self.aUnderlyingImage = cache
                         self.imageLoadingComplete()
-                    }
+                    })
                     return
                 }
-                SDWebImageDownloader.sharedDownloader().downloadImageWithURL(url, options: SDWebImageDownloaderOptions.ContinueInBackground, progress: {[weak self] (read, total) -> Void in
+                SDWebImageDownloader.shared().downloadImage(with: url as URL, options: SDWebImageDownloaderOptions.continueInBackground, progress: {[weak self] (read, total, sdUrl) -> Void in
                     guard let sself = self else { return }
                     let progress = CGFloat(read)/CGFloat(total)
-                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                    DispatchQueue.main.async {
                         sself.progressUpdateBlock?(progress)
-                    })
+                    }
                     }, completed: {[weak self] (img, data, err, flag) -> Void in
-                        if let image = img, sself = self {
+                        if let image = img, let sself = self {
                             sself.aUnderlyingImage = image
                             sself.imageLoadingComplete()
                         }
@@ -167,28 +173,25 @@ extension SSPhoto {
                 })
                 
             } else if let photo = asset {
-                var size = CGSizeMake(CGFloat(photo.pixelWidth), CGFloat(photo.pixelHeight))
+                var size = CGSize(width: CGFloat(photo.pixelWidth), height: CGFloat(photo.pixelHeight))
                 if let asize = targetSize  {
                     size = asize
                 }
                 weak var wsekf: SSPhoto! = self
                 
                 let progressBlock: PHAssetImageProgressHandler = { (value, error, stop, info) -> Void in
-                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                    DispatchQueue.main.async {
                         wsekf.progressUpdateBlock?(CGFloat(value))
-                    })
+                    }
                 }
-                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-                    wsekf.requestId = photo.imageWithSize(size, progress: progressBlock , done: { (image) -> () in
-                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                DispatchQueue.global().async {
+                    wsekf.requestId = photo.imageWithSize(size: size, progress: progressBlock , done: { (image) -> () in
+                        DispatchQueue.main.async {
                             wsekf.aUnderlyingImage = image
                             wsekf.imageLoadingComplete()
-                        })
+                        }
                     })
-                })
-                
-                
-                
+                }
             }
             
         }
@@ -220,42 +223,42 @@ extension SSPhoto {
             return image
         }
         
-        let imageRef = image.CGImage
-        let imageSize = CGSizeMake(CGFloat(CGImageGetWidth(imageRef)), CGFloat(CGImageGetHeight(imageRef)))
-        let imageRect = (CGRectMake(0, 0, imageSize.width, imageSize.height))
+        let imageRef = image.cgImage
+        let imageSize = CGSize(width: CGFloat(imageRef!.width), height: CGFloat(imageRef!.height))
+        let imageRect = (CGRect(x: 0, y: 0, width: imageSize.width, height: imageSize.height))
         let colorSpace = CGColorSpaceCreateDeviceRGB()
-        var bitmapInfo = CGImageGetBitmapInfo(imageRef)
+        var bitmapInfo = imageRef!.bitmapInfo
         
-        let infoMask = bitmapInfo.intersect(CGBitmapInfo.AlphaInfoMask)
+        let infoMask = bitmapInfo.intersection(CGBitmapInfo.alphaInfoMask)
         
-        let alphaNone = CGBitmapInfo(rawValue: CGImageAlphaInfo.None.rawValue)
-        let alphaNoneSkipFirst = CGBitmapInfo(rawValue: CGImageAlphaInfo.NoneSkipFirst.rawValue)
-        let alphaNoneSkipLast = CGBitmapInfo(rawValue: CGImageAlphaInfo.NoneSkipLast.rawValue)
+        let alphaNone = CGBitmapInfo(rawValue: CGImageAlphaInfo.none.rawValue)
+        let alphaNoneSkipFirst = CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipFirst.rawValue)
+        let alphaNoneSkipLast = CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipLast.rawValue)
         let anyNonAlpha = infoMask == alphaNone ||
             infoMask == alphaNoneSkipFirst ||
             infoMask == alphaNoneSkipLast
         
         // CGBitmapContextCreate doesn't support kCGImageAlphaNone with RGB.
         
-        if (infoMask == alphaNone && CGColorSpaceGetNumberOfComponents(colorSpace) > 1)
+        if (infoMask == alphaNone && colorSpace.numberOfComponents > 1)
         {
             // Unset the old alpha info.
-            let newBitmapInfoRaw = bitmapInfo.rawValue & ~CGBitmapInfo.AlphaInfoMask.rawValue
+            let newBitmapInfoRaw = bitmapInfo.rawValue & ~CGBitmapInfo.alphaInfoMask.rawValue
             
             // Set noneSkipFirst.
             bitmapInfo = CGBitmapInfo(rawValue: (newBitmapInfoRaw | alphaNoneSkipFirst.rawValue))
         }
             // Some PNGs tell us they have alpha but only 3 components. Odd.
-        else if (!anyNonAlpha && CGColorSpaceGetNumberOfComponents(colorSpace) == 3)
+        else if (!anyNonAlpha && colorSpace.numberOfComponents == 3)
         {
             // Unset the old alpha info.
-            let newBitmapInfoRaw = bitmapInfo.rawValue & ~CGBitmapInfo.AlphaInfoMask.rawValue
+            let newBitmapInfoRaw = bitmapInfo.rawValue & ~CGBitmapInfo.alphaInfoMask.rawValue
 //            bitmapInfo &= ~CGBitmapInfo.AlphaInfoMask
-            bitmapInfo = CGBitmapInfo(rawValue: newBitmapInfoRaw | CGImageAlphaInfo.PremultipliedFirst.rawValue)
+            bitmapInfo = CGBitmapInfo(rawValue: newBitmapInfoRaw | CGImageAlphaInfo.premultipliedFirst.rawValue)
         }
         
         // It calculates the bytes-per-row based on the bitsPerComponent and width arguments.
-        let context = CGBitmapContextCreate(nil, Int(imageSize.width), Int(imageSize.height), CGImageGetBitsPerComponent(imageRef), 0, colorSpace, bitmapInfo.rawValue)
+        let context = CGContext(data: nil, width: Int(imageSize.width), height: Int(imageSize.height), bitsPerComponent: imageRef!.bitsPerComponent, bytesPerRow: 0, space: colorSpace, bitmapInfo: bitmapInfo.rawValue)
         
         
         // If failed, return undecompressed image
@@ -263,12 +266,12 @@ extension SSPhoto {
             return image
         }
         
-        CGContextDrawImage(context, imageRect, imageRef)
-        guard let decompressedImageRef = CGBitmapContextCreateImage(context) else {
+        context?.draw(imageRef!, in: imageRect)
+        guard let decompressedImageRef = context!.makeImage() else {
             return nil
         }
         
-        let decompressedImage = UIImage(CGImage: decompressedImageRef, scale: image.scale, orientation: image.imageOrientation)
+        let decompressedImage = UIImage(cgImage: decompressedImageRef, scale: image.scale, orientation: image.imageOrientation)
         return decompressedImage
     }
     
@@ -277,11 +280,11 @@ extension SSPhoto {
             if let img = UIImage(contentsOfFile: photoPath) {
                 aUnderlyingImage = img
             }else{
-                if let img = decodedImageWithImage(aUnderlyingImage) {
+                if let img = decodedImageWithImage(image: aUnderlyingImage) {
                     aUnderlyingImage = img
                 }
             }
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            DispatchQueue.main.async(execute: { () -> Void in
                 self.imageLoadingComplete()
             })
         }
@@ -289,7 +292,7 @@ extension SSPhoto {
     
     func imageLoadingComplete() {
         loadingInProgress = false
-        NSNotificationCenter.defaultCenter().postNotificationName(SSPHOTO_LOADING_DID_END_NOTIFICATION, object: self)
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: SSPHOTO_LOADING_DID_END_NOTIFICATION), object: self)
     }
 }
 
@@ -300,26 +303,26 @@ public extension PHAsset {
         return NSURL(string: self.localIdentifier)?.pathComponents?[0] ?? ""
     }
     
-    public func imageWithSize(size:CGSize, progress: PHAssetImageProgressHandler!, done:(UIImage!)->() ) -> PHImageRequestID! {
-        let cache = SDImageCache.sharedImageCache()
+    public func imageWithSize(size:CGSize, progress: PHAssetImageProgressHandler!, done:@escaping (UIImage!)->() ) -> PHImageRequestID! {
+        let cache = SDImageCache.shared()
         let key = self.identifier+"_\(size.width)x\(size.height)"
-        if let img = cache.imageFromDiskCacheForKey(key) {
+        if let img = cache.imageFromDiskCache(forKey: key) {
             done(img)
             return nil
         }
-        let manager = PHImageManager.defaultManager()
+        let manager = PHImageManager.default()
         let option = PHImageRequestOptions()
-        option.synchronous = false
-        option.networkAccessAllowed = true
-        option.normalizedCropRect = CGRect(origin: CGPointZero, size: size)
-        option.resizeMode = .Exact
+        option.isSynchronous = false
+        option.isNetworkAccessAllowed = true
+        option.normalizedCropRect = CGRect(origin: .zero, size: size)
+        option.resizeMode = .exact
         option.progressHandler = progress
-        option.deliveryMode = .HighQualityFormat
-        option.version = .Original
+        option.deliveryMode = .highQualityFormat
+        option.version = .original
         
-        return manager.requestImageForAsset(self, targetSize: size, contentMode: .AspectFit, options: option, resultHandler: {(result, info)->Void in
+        return manager.requestImage(for: self, targetSize: size, contentMode: .aspectFit, options: option, resultHandler: {(result, info)->Void in
             if let img = result {
-                cache.storeImage(img, forKey: key, toDisk: true)
+                cache.store(img, forKey: key, toDisk: true)
             }
             done(result)
         })

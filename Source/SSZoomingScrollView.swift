@@ -15,37 +15,37 @@ public class SSZoomingScrollView : UIScrollView {
     public var photoImageView: SSTapDetectingImageView!
     public var tapView: SSTapDetectingView!
     
-    private var  progressView : DACircularProgressView!
-    private weak var photoBrowser: SSImageBrowser!
+    fileprivate var  progressView : DACircularProgressView!
+    fileprivate weak var photoBrowser: SSImageBrowser!
     
     convenience init(aPhotoBrowser: SSImageBrowser) {
-        self.init(frame: CGRectZero)
+        self.init(frame: .zero)
         photoBrowser = aPhotoBrowser
         
         // Tap view for background
          tapView = SSTapDetectingView(frame:self.bounds)
          tapView.tapDelegate = self 
-         tapView.autoresizingMask = [.FlexibleWidth, .FlexibleHeight]
-         tapView.backgroundColor = UIColor.clearColor()
+         tapView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+         tapView.backgroundColor = UIColor.clear
          self.addSubview(tapView)
         
         // Image view
-         photoImageView = SSTapDetectingImageView(frame:CGRectZero)
+         photoImageView = SSTapDetectingImageView(frame:.zero)
          photoImageView.tapDelegate = self 
-         photoImageView.backgroundColor = UIColor.clearColor()
+         photoImageView.backgroundColor = UIColor.clear
          self.addSubview(photoImageView)
-        let screenBound = UIScreen.mainScreen().bounds
+        let screenBound = UIScreen.main.bounds
         var screenWidth = screenBound.size.width
         var screenHeight = screenBound.size.height
-        let orientation = UIDevice.currentDevice().orientation
-        if orientation == UIDeviceOrientation.LandscapeLeft ||
-            orientation == UIDeviceOrientation.LandscapeRight {
+        let orientation = UIDevice.current.orientation
+        if orientation == UIDeviceOrientation.landscapeLeft ||
+            orientation == UIDeviceOrientation.landscapeRight {
                 screenWidth = screenBound.size.height 
                 screenHeight = screenBound.size.width 
         }
         
         // Progress view
-         progressView = DACircularProgressView(frame:CGRectMake((screenWidth-35)/2, (screenHeight-35)/2, 35.0, 35.0))
+        progressView = DACircularProgressView(frame:CGRect(x: (screenWidth-35)/2, y: (screenHeight-35)/2, width: 35.0, height: 35.0))
          progressView.progress = 0
          progressView.tag = 101 
          progressView.thicknessRatio = 0.1 
@@ -54,12 +54,12 @@ public class SSZoomingScrollView : UIScrollView {
          progressView.progressTintColor = aPhotoBrowser.progressTintColor != nil ? photoBrowser.progressTintColor : UIColor(white:1.0, alpha:1)
         self.addSubview(progressView)
         // Setup
-        self.backgroundColor = UIColor.clearColor()
+        self.backgroundColor = UIColor.clear
         self.delegate = self 
         self.showsHorizontalScrollIndicator = false
         self.showsVerticalScrollIndicator = false
         self.decelerationRate = UIScrollViewDecelerationRateFast 
-        self.autoresizingMask = [UIViewAutoresizing.FlexibleWidth, UIViewAutoresizing.FlexibleHeight]
+        self.autoresizingMask = [UIViewAutoresizing.flexibleWidth, UIViewAutoresizing.flexibleHeight]
     }
     
     public required init?(coder aDecoder: NSCoder) {
@@ -107,21 +107,21 @@ public class SSZoomingScrollView : UIScrollView {
             self.minimumZoomScale = 1
             self.zoomScale = 1
             
-            self.contentSize = CGSizeMake(0, 0)
+            self.contentSize = .zero
             
             // Get image from browser as it handles ordering of fetching
-            if let img = photoBrowser.imageForPhoto(p) {
+            if let img = photoBrowser.imageForPhoto(photo: p) {
                 // Hide ProgressView
                 // progressView.alpha = 0.0f 
                 progressView.removeFromSuperview()
                 
                 // Set image
                 photoImageView.image = img
-                photoImageView.hidden = false
+                photoImageView.isHidden = false
                 
                 // Setup photo frame
-                var photoImageViewFrame = CGRectZero
-                photoImageViewFrame.origin = CGPointZero
+                var photoImageViewFrame = CGRect.zero
+                photoImageViewFrame.origin = .zero
                 photoImageViewFrame.size = img.size
                 
                 photoImageView.frame = photoImageViewFrame
@@ -131,7 +131,7 @@ public class SSZoomingScrollView : UIScrollView {
                 setMaxMinZoomScalesForCurrentBounds()
             } else {
                 // Hide image view
-                photoImageView.hidden = true
+                photoImageView.isHidden = true
                 
                 progressView.alpha = 1.0
             }
@@ -175,7 +175,7 @@ public class SSZoomingScrollView : UIScrollView {
         // on high resolution screens we have double the pixel density, so we will be seeing every pixel if we limit the
         // maximum zoom scale to 0.5.
 
-            maxScale = maxScale / UIScreen.mainScreen().scale
+            maxScale = maxScale / UIScreen.main.scale
             
             if (maxScale < minScale) {
                 maxScale = minScale * 2
@@ -188,7 +188,7 @@ public class SSZoomingScrollView : UIScrollView {
         self.zoomScale = minScale
         
         // Reset position
-        photoImageView.frame = CGRectMake(0, 0, photoImageView.frame.size.width, photoImageView.frame.size.height)
+        photoImageView.frame = CGRect(x: 0, y: 0, width:  photoImageView.frame.size.width, height: photoImageView.frame.size.height)
         self.setNeedsLayout()
     }
     
@@ -218,7 +218,7 @@ public class SSZoomingScrollView : UIScrollView {
         }
         
         // Center
-        if !CGRectEqualToRect(photoImageView.frame, frameToCenter) {
+        if !photoImageView.frame.equalTo(frameToCenter) {
             photoImageView.frame = frameToCenter
         }
     }
@@ -252,7 +252,8 @@ extension SSZoomingScrollView: UIScrollViewDelegate {
 extension SSZoomingScrollView: SSTapDetectingViewDelegate, SSTapDetectingImageViewDelegate {
     
     private func handleSingleTap(touchPoint: CGPoint) {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(0.2 * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) { () -> Void in
+        let deadline = DispatchTime.now() + 0.2
+        DispatchQueue.main.asyncAfter(deadline: deadline) { 
             self.photoBrowser.toggleControls()
         }
     }
@@ -260,14 +261,14 @@ extension SSZoomingScrollView: SSTapDetectingViewDelegate, SSTapDetectingImageVi
     private func handleDoubleTap(touchPoint: CGPoint) {
     
     // Cancel any single tap handling
-        NSObject.cancelPreviousPerformRequestsWithTarget(photoBrowser)
+        NSObject.cancelPreviousPerformRequests(withTarget: photoBrowser)
     
     // Zoom
         if self.zoomScale == self.maximumZoomScale {
             self.setZoomScale(self.minimumZoomScale, animated: true)
     
         } else {
-            self.zoomToRect(CGRectMake(touchPoint.x, touchPoint.y, 1, 1), animated: true)
+            self.zoom(to: CGRect(x: touchPoint.x, y: touchPoint.y, width: 1, height: 1), animated: true)
     
         }
     
@@ -276,25 +277,25 @@ extension SSZoomingScrollView: SSTapDetectingViewDelegate, SSTapDetectingImageVi
     }
     
     
-    public func imageView(imageView: UIImageView, singleTapDetected touch: UITouch) {
-        handleSingleTap(touch.locationInView(imageView))
+    public func imageView(_ imageView: UIImageView, singleTapDetected touch: UITouch) {
+        handleSingleTap(touchPoint: touch.location(in: imageView))
     }
     
-    public func imageView(imageView: UIImageView, doubleTapDetected touch: UITouch) {
-        handleDoubleTap(touch.locationInView(imageView))
+    public func imageView(_ imageView: UIImageView, doubleTapDetected touch: UITouch) {
+        handleDoubleTap(touchPoint: touch.location(in: imageView))
     }
     
-    public func imageView(imageView: UIImageView, tripleTapDetected touch: UITouch) {
+    public func imageView(_ imageView: UIImageView, tripleTapDetected touch: UITouch) {
         
     }
     
-    public func view(view: UIView, singleTapDetected touch: UITouch) {
-        handleSingleTap(touch.locationInView(view))
+    public func view(_ view: UIView, singleTapDetected touch: UITouch) {
+        handleSingleTap(touchPoint: touch.location(in: view))
     }
-    public func view(view: UIView, doubleTapDetected touch: UITouch) {
-        handleDoubleTap(touch.locationInView(view))
+    public func view(_ view: UIView, doubleTapDetected touch: UITouch) {
+        handleDoubleTap(touchPoint: touch.location(in: view))
     }
-    public func view(view: UIView, tripleTapDetected touch: UITouch) {
+    public func view(_ view: UIView, tripleTapDetected touch: UITouch) {
         
     }
 

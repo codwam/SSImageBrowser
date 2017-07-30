@@ -10,11 +10,11 @@ import UIKit
 import pop
 // MARK: - SSImageBrowserDelegate
 @objc public protocol SSImageBrowserDelegate: class {
-    optional func photoBrowser(photoBrowser: SSImageBrowser, didShowPhotoAtIndex index: Int)
-    optional func photoBrowser(photoBrowser: SSImageBrowser, didDismissAtPageIndex index: Int)
-    optional func photoBrowser(photoBrowser: SSImageBrowser, willDismissAtPageIndex index: Int)
-    optional func photoBrowser(photoBrowser: SSImageBrowser, captionViewForPhotoAtIndex index: Int) -> SSCaptionView!
-    optional func photoBrowser(photoBrowser: SSImageBrowser, didDismissActionSheetWithButtonIndex index: Int, photoIndex: Int)
+    @objc optional func photoBrowser(_ photoBrowser: SSImageBrowser, didShowPhotoAtIndex index: Int)
+    @objc optional func photoBrowser(_ photoBrowser: SSImageBrowser, didDismissAtPageIndex index: Int)
+    @objc optional func photoBrowser(_ photoBrowser: SSImageBrowser, willDismissAtPageIndex index: Int)
+    @objc optional func photoBrowser(_ photoBrowser: SSImageBrowser, captionViewForPhotoAtIndex index: Int) -> SSCaptionView!
+    @objc optional func photoBrowser(_ photoBrowser: SSImageBrowser, didDismissActionSheetWithButtonIndex index: Int, photoIndex: Int)
 }
 public let UIApplicationSaveImageToCameraRoll = "UIApplicationSaveImageToCameraRoll"
 // MARK: - SSImageBrowser
@@ -49,41 +49,41 @@ public class SSImageBrowser: UIViewController {
     public weak var progressTintColor: UIColor!
     
     // MARK: - Private
-    private lazy var photos: [SSPhoto]!                       = [SSPhoto]()
-    private lazy var pagingScrollView                         = UIScrollView()
-    private lazy var pageIndexBeforeRotation: UInt            = 0
-    private lazy var currentPageIndex                         = 0
-    private lazy var initalPageIndex                          = 0
-    private var statusBarOriginallyHidden                     = false
-    private var performingLayout                              = false
-    private var rotating                                      = false
-    private var viewIsActive                                  = false
-    private var autoHide                                      = true
-    private var isdraggingPhoto                               = false
-    private lazy var visiblePages: Set<SSZoomingScrollView>!  = Set<SSZoomingScrollView>()
-    private lazy var recycledPages: Set<SSZoomingScrollView>! = Set<SSZoomingScrollView>()
+    fileprivate lazy var photos: [SSPhoto]!                       = [SSPhoto]()
+    fileprivate lazy var pagingScrollView                         = UIScrollView()
+    fileprivate lazy var pageIndexBeforeRotation: UInt            = 0
+    fileprivate lazy var currentPageIndex                         = 0
+    fileprivate lazy var initalPageIndex                          = 0
+    fileprivate var statusBarOriginallyHidden                     = false
+    fileprivate var performingLayout                              = false
+    fileprivate var rotating                                      = false
+    fileprivate var viewIsActive                                  = false
+    fileprivate var autoHide                                      = true
+    fileprivate var isdraggingPhoto                               = false
+    fileprivate lazy var visiblePages: Set<SSZoomingScrollView>!  = Set<SSZoomingScrollView>()
+    fileprivate lazy var recycledPages: Set<SSZoomingScrollView>! = Set<SSZoomingScrollView>()
     
-    private var panGesture: UIPanGestureRecognizer!
-    private var doneButton: UIButton!
-    private var toolbar: UIToolbar!
-    private var previousButton: UIBarButtonItem!
-    private var nextButton: UIBarButtonItem!
-    private var actionButton: UIBarButtonItem!
-    private var counterButton: UIBarButtonItem!
-    private var counterLabel: UILabel!
-    private var actionsSheet: UIAlertController!
-    private var activityViewController: UIActivityViewController!
-    private weak var senderViewForAnimation: UIView!
-    private var senderViewOriginalFrame: CGRect!
-    private var applicationWindow: UIWindow!
-    private var applicationTopViewController: UIViewController!
+    fileprivate var panGesture: UIPanGestureRecognizer!
+    fileprivate var doneButton: UIButton!
+    fileprivate var toolbar: UIToolbar!
+    fileprivate var previousButton: UIBarButtonItem!
+    fileprivate var nextButton: UIBarButtonItem!
+    fileprivate var actionButton: UIBarButtonItem!
+    fileprivate var counterButton: UIBarButtonItem!
+    fileprivate var counterLabel: UILabel!
+    fileprivate var actionsSheet: UIAlertController!
+    fileprivate var activityViewController: UIActivityViewController!
+    fileprivate weak var senderViewForAnimation: UIView!
+    fileprivate var senderViewOriginalFrame: CGRect!
+    fileprivate var applicationWindow: UIWindow!
+    fileprivate var applicationTopViewController: UIViewController!
     
-    private var firstX: CGFloat = 0
-    private var firstY: CGFloat = 0
+    fileprivate var firstX: CGFloat = 0
+    fileprivate var firstY: CGFloat = 0
     
-    private var hideTask: CancelableTask!
+    fileprivate var hideTask: CancelableTask!
     
-    private func  areControlsHidden() -> Bool {
+    fileprivate func  areControlsHidden() -> Bool {
         if let t = toolbar {
             return t.alpha == 0
         }
@@ -93,7 +93,7 @@ public class SSImageBrowser: UIViewController {
     
     deinit {
         pagingScrollView.delegate = nil
-        NSNotificationCenter.defaultCenter().removeObserver(self)
+        NotificationCenter.default.removeObserver(self)
         releaseAllUnderlyingPhotos()
     }
     
@@ -101,7 +101,7 @@ public class SSImageBrowser: UIViewController {
         super.init(coder: aDecoder)
     }
     
-    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: NSBundle?) {
+    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
     }
     
@@ -111,26 +111,26 @@ public class SSImageBrowser: UIViewController {
         initialize()
     }
     
-    private func initialize() {
+    fileprivate func initialize() {
         view.tintColor = UIColor(red:0.369,  green:0.549,  blue:0.310, alpha:1)
         hidesBottomBarWhenPushed                     = true
         automaticallyAdjustsScrollViewInsets         = false
-        modalPresentationStyle                       = UIModalPresentationStyle.Custom
-        modalTransitionStyle                         = UIModalTransitionStyle.CrossDissolve
+        modalPresentationStyle                       = UIModalPresentationStyle.custom
+        modalTransitionStyle                         = UIModalTransitionStyle.crossDissolve
         modalPresentationCapturesStatusBarAppearance = true
-        applicationWindow                            = UIApplication.sharedApplication().delegate?.window!
+        applicationWindow                            = UIApplication.shared.delegate?.window!
         // Listen for IDMPhoto notifications
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(handleSSPhotoLoadingDidEndNotification(_:)), name: SSPHOTO_LOADING_DID_END_NOTIFICATION, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleSSPhotoLoadingDidEndNotification(_:)), name: NSNotification.Name(rawValue: SSPHOTO_LOADING_DID_END_NOTIFICATION), object: nil)
     }
     
     // MARK: - SSPhoto Loading Notification
-    func handleSSPhotoLoadingDidEndNotification(notification: NSNotification) {
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+    func handleSSPhotoLoadingDidEndNotification(_ notification: NSNotification) {
+        DispatchQueue.main.async(execute: { () -> Void in
             if let photo = notification.object as? SSPhoto {
-                if let page = self.pageDisplayingPhoto(photo) {
+                if let page = self.pageDisplayingPhoto(photo: photo) {
                     if photo.underlyingImage() != nil {
                         page.displayImage()
-                        self.loadAdjacentPhotosIfNecessary(photo)
+                        self.loadAdjacentPhotosIfNecessary(photo: photo)
                     } else {
                         page.displayImageFailure()
                     }
@@ -152,7 +152,7 @@ extension SSImageBrowser {
 
     public convenience init(aURLs: [NSURL], animatedFromView view: UIView! = nil) {
         self.init()
-        let aPhotos = SSPhoto.photosWithURLs(aURLs)
+        let aPhotos = SSPhoto.photosWithURLs(urlsArray: aURLs)
         photos = aPhotos
         senderViewForAnimation = view
         performPresentAnimation()
@@ -168,75 +168,75 @@ extension SSImageBrowser {
         // Setup paging scrolling view
         let pagingScrollViewFrame = frameForPagingScrollView()
         pagingScrollView = UIScrollView(frame: pagingScrollViewFrame)
-        pagingScrollView.pagingEnabled = true
+        pagingScrollView.isPagingEnabled = true
         pagingScrollView.delegate = self
         pagingScrollView.showsHorizontalScrollIndicator = false
         pagingScrollView.showsVerticalScrollIndicator = false
-        pagingScrollView.backgroundColor = UIColor.clearColor()
+        pagingScrollView.backgroundColor = UIColor.clear
         pagingScrollView.contentSize = contentSizeForPagingScrollView()
         view.addSubview(pagingScrollView)
         
 //        // Transition animation
 //        performPresentAnimation()
         
-        let currentOrientation = UIApplication.sharedApplication().statusBarOrientation
+        let currentOrientation = UIApplication.shared.statusBarOrientation
         
         // Toolbar
-        toolbar = UIToolbar(frame: frameForToolbarAtOrientation(currentOrientation))
-        toolbar.backgroundColor = UIColor.clearColor()
+        toolbar = UIToolbar(frame: frameForToolbarAtOrientation(orientation: currentOrientation))
+        toolbar.backgroundColor = UIColor.clear
         toolbar.clipsToBounds = true
-        toolbar.translucent = true
-        toolbar.setBackgroundImage(UIImage(), forToolbarPosition: .Any, barMetrics: UIBarMetrics.Default)
+        toolbar.isTranslucent = true
+        toolbar.setBackgroundImage(UIImage(), forToolbarPosition: .any, barMetrics: UIBarMetrics.default)
         
         // Close Button
-        doneButton = UIButton(type: .Custom)
-        doneButton.frame =  frameForDoneButtonAtOrientation(currentOrientation)
+        doneButton = UIButton(type: .custom)
+        doneButton.frame =  frameForDoneButtonAtOrientation(orientation: currentOrientation)
         doneButton.alpha = 1.0
-        doneButton.addTarget(self, action: #selector(doneButtonPressed), forControlEvents: .TouchUpInside)
+        doneButton.addTarget(self, action: #selector(doneButtonPressed), for: .touchUpInside)
         
-        let bundle = NSBundle(forClass: SSImageBrowser.self)
-        var imageBundle: NSBundle?
-        if let path = bundle.pathForResource("IDMPhotoBrowser", ofType: "bundle") {
-            imageBundle = NSBundle(path: path)
+        let bundle = Bundle(for: SSImageBrowser.self)
+        var imageBundle: Bundle?
+        if let path = bundle.path(forResource: "IDMPhotoBrowser", ofType: "bundle") {
+            imageBundle = Bundle(path: path)
         }
-        let scale = Int(UIScreen.mainScreen().scale)
+        let scale = Int(UIScreen.main.scale)
         var leftOff = leftArrowImage
-        if let path = imageBundle?.pathForResource("images/left\(scale)x", ofType: "png") where leftArrowImage == nil  {
-            leftOff = UIImage(contentsOfFile: path)?.imageWithRenderingMode(.AlwaysTemplate)
+        if let path = imageBundle?.path(forResource: "images/left\(scale)x", ofType: "png"), leftArrowImage == nil  {
+            leftOff = UIImage(contentsOfFile: path)?.withRenderingMode(.alwaysTemplate)
         }
         var rightOff = rightArrowImage
-        if let path = imageBundle?.pathForResource("images/right\(scale)x", ofType: "png") where rightArrowImage == nil  {
-            rightOff = UIImage(contentsOfFile: path)?.imageWithRenderingMode(.AlwaysTemplate)
+        if let path = imageBundle?.path(forResource: "images/right\(scale)x", ofType: "png"), rightArrowImage == nil  {
+            rightOff = UIImage(contentsOfFile: path)?.withRenderingMode(.alwaysTemplate)
         }
         let leftOn = leftArrowSelectedImage ?? leftOff
         
         let rightOn = rightArrowSelectedImage ?? rightOff
         
         // Arrows
-        previousButton = UIBarButtonItem(customView:customToolbarButtonImage(leftOff, imageSelected: leftOn!, action: #selector(gotoPreviousPage)))
+        previousButton = UIBarButtonItem(customView:customToolbarButtonImage(image: leftOff!, imageSelected: leftOn!, action: #selector(gotoPreviousPage)))
         
-        nextButton = UIBarButtonItem(customView:customToolbarButtonImage(rightOff, imageSelected: rightOn!, action: #selector(gotoNextPage)))
+        nextButton = UIBarButtonItem(customView:customToolbarButtonImage(image: rightOff!, imageSelected: rightOn!, action: #selector(gotoNextPage)))
         
         // Counter Label
-        counterLabel                 = UILabel(frame: CGRectMake(0, 0, 95, 40))
-        counterLabel.textAlignment   = .Center
-        counterLabel.backgroundColor = UIColor.clearColor()
+        counterLabel                 = UILabel(frame: CGRect(x: 0, y: 0, width: 95, height: 40))
+        counterLabel.textAlignment   = .center
+        counterLabel.backgroundColor = UIColor.clear
         counterLabel.font            = UIFont(name: "Helvetica", size: 17)
         
         if !useWhiteBackgroundColor {
-            counterLabel.textColor    = UIColor.whiteColor()
-            counterLabel.shadowColor  = UIColor.darkTextColor()
-            counterLabel.shadowOffset = CGSizeMake(0, 1)
+            counterLabel.textColor    = UIColor.white
+            counterLabel.shadowColor  = UIColor.darkText
+            counterLabel.shadowOffset = CGSize(width: 0, height: 1)
         }
         else {
-            counterLabel.textColor = UIColor.blackColor()
+            counterLabel.textColor = UIColor.black
         }
         
         // Counter Button
         counterButton = UIBarButtonItem(customView: counterLabel)
         
         // Action Button
-        actionButton = UIBarButtonItem(barButtonSystemItem: .Action, target: self, action: #selector(actionButtonPressed(_:)))
+        actionButton = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(actionButtonPressed(_:)))
         
         // Gesture
         panGesture = UIPanGestureRecognizer(target:self, action: #selector(panGestureRecognized(_:)))
@@ -245,33 +245,33 @@ extension SSImageBrowser {
         
         
     }
-    public override func viewWillAppear(animated: Bool) {
+    public override func viewWillAppear(_ animated: Bool) {
         reloadData()
         super.viewWillAppear(animated)
         
         // Status Bar
-        statusBarOriginallyHidden = UIApplication.sharedApplication().statusBarHidden
+        statusBarOriginallyHidden = UIApplication.shared.isStatusBarHidden
         
         // Update UI
         hideControlsAfterDelay()
 
         if doneButtonImage == nil && doneButtonImageForeground == nil {
-            doneButton.setTitleColor(UIColor(white: 0.9, alpha: 0.9), forState:[.Normal, .Highlighted])
-            doneButton.setTitle(SSPhotoBrowserLocalizedStrings("X"), forState: .Normal)
-            doneButton.titleLabel?.font = UIFont.boldSystemFontOfSize(11)
+            doneButton.setTitleColor(UIColor(white: 0.9, alpha: 0.9), for:[.normal, .highlighted])
+            doneButton.setTitle(SSPhotoBrowserLocalizedStrings(key: "X"), for: .normal)
+            doneButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 11)
             doneButton.backgroundColor = UIColor(white: 0.1, alpha: 0.5)
             doneButton.sizeToFit()
             doneButton.layer.cornerRadius = doneButton.bounds.size.width/2
         } else if doneButtonImageForeground != nil {
-            doneButton.setImage(doneButtonImageForeground, forState: .Normal)
-            doneButton.contentMode = .Center
+            doneButton.setImage(doneButtonImageForeground, for: .normal)
+            doneButton.contentMode = .center
         } else if doneButtonImage != nil {
-            doneButton.setBackgroundImage(doneButtonImage, forState: .Normal)
-            doneButton.contentMode = .ScaleAspectFit
+            doneButton.setBackgroundImage(doneButtonImage, for: .normal)
+            doneButton.contentMode = .scaleAspectFit
         }
     }
     
-    public override func viewDidAppear(animated: Bool) {
+    public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         viewIsActive = true
     }
@@ -280,13 +280,13 @@ extension SSImageBrowser {
         // Flag
         performingLayout = true
         
-        let currentOrientation = UIApplication.sharedApplication().statusBarOrientation
+        let currentOrientation = UIApplication.shared.statusBarOrientation
         
         // Toolbar
-        toolbar.frame = frameForToolbarAtOrientation(currentOrientation)
+        toolbar.frame = frameForToolbarAtOrientation(orientation: currentOrientation)
         
         // Done button
-        doneButton.frame = frameForDoneButtonAtOrientation(currentOrientation)
+        doneButton.frame = frameForDoneButtonAtOrientation(orientation: currentOrientation)
         
         
         // Remember index
@@ -304,18 +304,18 @@ extension SSImageBrowser {
         // Adjust frames and configuration of each visible page
         for  page  in visiblePages  {
             
-            let index = PAGE_INDEX(page)
-            page.frame =  frameForPageAtIndex(index)
+            let index = PAGE_INDEX(page: page)
+            page.frame =  frameForPageAtIndex(index: index)
             
             if let captionView = page.captionView {
-                captionView.frame = frameForCaptionView(captionView, atIndex: index)
+                captionView.frame = frameForCaptionView(captionView: captionView, atIndex: index)
             }
             page.setMaxMinZoomScalesForCurrentBounds()
         }
         
         // Adjust contentOffset to preserve page location based on values collected prior to location
-        pagingScrollView.contentOffset = contentOffsetForPageAtIndex(indexPriorToLayout)
-        didStartViewingPageAtIndex(currentPageIndex) // initial
+        pagingScrollView.contentOffset = contentOffsetForPageAtIndex(index: indexPriorToLayout)
+        didStartViewingPageAtIndex(index: currentPageIndex) // initial
         
         // Reset
         currentPageIndex = indexPriorToLayout
@@ -329,12 +329,12 @@ extension SSImageBrowser {
     override public func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         releaseAllUnderlyingPhotos()
-        recycledPages.removeAll(keepCapacity: false)
+        recycledPages.removeAll(keepingCapacity: false)
     }
     
-    public override func viewWillDisappear(animated: Bool) {
+    public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        NSNotificationCenter.defaultCenter().postNotificationName("stopAllRequest", object: nil)
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "stopAllRequest"), object: nil)
     }
 }
 // MARK: - Public Func
@@ -347,15 +347,16 @@ extension SSImageBrowser {
         self.view.setNeedsLayout()
     }
     
-    public func setInitialPageIndex(var index: Int) {
+    public func setInitialPageIndex( index: Int) {
+        var index = index
         let count = numberOfPhotos()
         if index >= count {
             index = count - 1
         }
         initalPageIndex = index
         currentPageIndex = index
-        if self.isViewLoaded() {
-            jumpToPageAtIndex(index)
+        if self.isViewLoaded {
+            jumpToPageAtIndex(index: index)
             if !viewIsActive {
                 tilePages()
             }
@@ -368,11 +369,11 @@ extension SSImageBrowser {
     
     // MARK: - Status Bar
     
-    public override func preferredStatusBarStyle() -> UIStatusBarStyle {
-        return useWhiteBackgroundColor ? .Default : .LightContent
+    public override var preferredStatusBarStyle: UIStatusBarStyle {
+        return useWhiteBackgroundColor ? .default : .lightContent
     }
     
-    public override func prefersStatusBarHidden() -> Bool {
+    public override var prefersStatusBarHidden: Bool {
         if forceHideStatusBar {
             return true
         }
@@ -387,8 +388,8 @@ extension SSImageBrowser {
         }
     }
     
-    public override func preferredStatusBarUpdateAnimation() -> UIStatusBarAnimation {
-        return .Fade
+    public override var preferredStatusBarUpdateAnimation: UIStatusBarAnimation {
+        return .fade
     }
     
 }
@@ -399,11 +400,11 @@ extension SSImageBrowser: UIScrollViewDelegate {
         if !viewIsActive || performingLayout || rotating {
             return
         }
-        setControlsHidden(true, animated: false, permanent: false)
+        setControlsHidden(hidden: true, animated: false, permanent: false)
         tilePages()
         let visibleBounds = pagingScrollView.bounds
-        let x             = CGRectGetMidX(visibleBounds)
-        let width         = CGRectGetWidth(visibleBounds)
+        let x             = visibleBounds.midX
+        let width         = visibleBounds.width
         let f             = x / width
         var index         = Int(floor(f))
         if index < 0 {
@@ -416,7 +417,7 @@ extension SSImageBrowser: UIScrollViewDelegate {
         let previousCurrentPage = currentPageIndex
         currentPageIndex = index
         if currentPageIndex != previousCurrentPage {
-            didStartViewingPageAtIndex(index)
+            didStartViewingPageAtIndex(index: index)
             if arrowButtonsChangePhotosAnimated {
                 updateToolbar()
             }
@@ -425,7 +426,7 @@ extension SSImageBrowser: UIScrollViewDelegate {
     
     public func scrollViewWillBeginDragging(scrollView: UIScrollView) {
         // Hide controls when dragging begins
-        setControlsHidden(true, animated: true, permanent: false)
+        setControlsHidden(hidden: true, animated: true, permanent: false)
     }
     
     public func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
@@ -442,84 +443,83 @@ extension SSImageBrowser: UIScrollViewDelegate {
 extension SSImageBrowser {
     
     // MARK: - Pan Gesture
-    func panGestureRecognized(sender: UIPanGestureRecognizer) {
+    func panGestureRecognized(_ sender: UIPanGestureRecognizer) {
         // Initial Setup
-        let scrollView      = pageDisplayedAtIndex(currentPageIndex)
+        let scrollView      = pageDisplayedAtIndex(index: currentPageIndex)
         if scrollView == nil {
             return
         }
         
-        let viewHeight      = scrollView.frame.size.height
+        let viewHeight      = scrollView!.frame.size.height
         let viewHalfHeight  = viewHeight/2
         
-        var translatedPoint = sender.translationInView(view)
+        var translatedPoint = sender.translation(in: view)
         
         // Gesture Began
-        if sender.state == .Began {
-            setControlsHidden(true, animated: true, permanent: true)
-            firstX                         = scrollView.center.x
-            firstY                         = scrollView.center.y
-            senderViewForAnimation?.hidden = currentPageIndex == initalPageIndex
+        if sender.state == .began {
+            setControlsHidden(hidden: true, animated: true, permanent: true)
+            firstX                         = scrollView!.center.x
+            firstY                         = scrollView!.center.y
+            senderViewForAnimation?.isHidden = currentPageIndex == initalPageIndex
             isdraggingPhoto                = true
             setNeedsStatusBarAppearanceUpdate()
         }
         
-        translatedPoint      = CGPointMake(firstX, firstY+translatedPoint.y)
-        scrollView.center    = translatedPoint
+        translatedPoint      = CGPoint(x: firstX, y: firstY+translatedPoint.y)
+        scrollView?.center    = translatedPoint
         
-        let newY             = scrollView.center.y - viewHalfHeight
+        let newY             = scrollView!.center.y - viewHalfHeight
         let newAlpha         = 1 - fabs(newY)/viewHeight//abs(newY)/viewHeight * 1.8
-        view.opaque          = true
+        view.isOpaque          = true
         view.backgroundColor = UIColor(white: useWhiteBackgroundColor ? 1 : 0, alpha: newAlpha)
         
         // Gesture Ended
-        if sender.state == .Ended {
+        if sender.state == .ended {
             
-            if scrollView.center.y > viewHalfHeight + 40 || scrollView.center.y < viewHalfHeight - 40  {
+            if scrollView!.center.y > viewHalfHeight + 40 || scrollView!.center.y < viewHalfHeight - 40  {
                 if senderViewForAnimation != nil && currentPageIndex == initalPageIndex {
-                    performCloseAnimationWithScrollView(scrollView)
+                    performCloseAnimationWithScrollView(scrollView: scrollView!)
                     return
                 }
                 let finalX = firstX
                 var finalY: CGFloat = 0
                 let windowsHeigt = applicationWindow.frame.size.height
                 
-                if scrollView.center.y > viewHalfHeight+30 {
+                if scrollView!.center.y > viewHalfHeight+30 {
                     finalY = windowsHeigt*2
                 } else {
                     finalY = -viewHalfHeight
                 }
                 
-                UIView.animateWithDuration(NSTimeInterval(animationDuration), animations: {
-                    scrollView.center = CGPointMake(finalX, finalY)
-                    self.view.backgroundColor = UIColor.clearColor()
+                UIView.animate(withDuration: TimeInterval(animationDuration), animations: {
+                    scrollView?.center = CGPoint(x: finalX, y: finalY)
+                    self.view.backgroundColor = UIColor.clear
                 })
                 
-                UIView.animateWithDuration(NSTimeInterval(animationDuration), delay: 0, options: UIViewAnimationOptions.CurveEaseIn, animations: {
-                    scrollView.center = CGPointMake(finalX, finalY)
+                UIView.animate(withDuration: TimeInterval(animationDuration), delay: 0, options: UIViewAnimationOptions.curveEaseIn, animations: {
+                    scrollView?.center = CGPoint(x: finalX, y: finalY)
                     }, completion: { (b) -> Void in
                         
                 })
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(0.35 * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {[weak self] in
-                    guard let sself = self else { return }
-                    sself.doneButtonPressed()
-                }
-                
+                let deadline = DispatchTime.now() + 0.35
+                DispatchQueue.main.asyncAfter(deadline: deadline, execute: { 
+                    self.doneButtonPressed()
+                })
             } else {
                 isdraggingPhoto = false
                 setNeedsStatusBarAppearanceUpdate()
                 view.backgroundColor = UIColor(white: useWhiteBackgroundColor ? 1 : 0, alpha: 1)
                 
-                let velocityY = sender.velocityInView(view).y*0.35
+                let velocityY = sender.velocity(in: view).y*0.35
                 
                 let finalX = firstX
                 let finalY = viewHalfHeight
                 let animationDuration = abs(velocityY) * 0.0002 + 0.2
-                UIView.animateWithDuration(
-                    NSTimeInterval(animationDuration),
+                UIView.animate(
+                    withDuration: TimeInterval(animationDuration),
                     delay: 0,
-                    options: .CurveEaseOut,
-                    animations: {  scrollView.center = CGPointMake(finalX, finalY) },
+                    options: .curveEaseOut,
+                    animations: {  scrollView?.center = CGPoint(x: finalX, y: finalY) },
                     completion: nil)
             }
         }
@@ -529,13 +529,13 @@ extension SSImageBrowser {
     
     func cancelControlHiding() {
         // If a timer exists then cancel and release
-        cancel(hideTask)
+        cancel(cancelableTask: hideTask)
     }
     
     func hideControlsAfterDelay() {
         if  !areControlsHidden() {
             cancelControlHiding()
-            hideTask = delay(5, work: {[weak self] in
+            hideTask = delay(time: 5, work: {[weak self] in
                 guard let sself = self else { return }
                 sself.hideControls()
             })
@@ -543,7 +543,7 @@ extension SSImageBrowser {
     }
     
     
-    private func setControlsHidden(hidden: Bool, animated: Bool, permanent: Bool) {
+    fileprivate func setControlsHidden(hidden: Bool, animated: Bool, permanent: Bool) {
         // Cancel any timers
         cancelControlHiding()
         
@@ -556,7 +556,7 @@ extension SSImageBrowser {
         }
         
         // Hide/show bars
-        UIView.animateWithDuration(animated ? 0.1 : 0, animations: {
+        UIView.animate(withDuration: animated ? 0.1 : 0, animations: {
             let alpha: CGFloat                             = hidden ? 0 : 1
             self.navigationController?.navigationBar.alpha = alpha
             self.toolbar.alpha                             = alpha
@@ -576,31 +576,31 @@ extension SSImageBrowser {
     
     
     
-    private func hideControls() {
+    fileprivate func hideControls() {
         if autoHide {
-            setControlsHidden(true, animated: true, permanent: false)
+            setControlsHidden(hidden: true, animated: true, permanent: false)
         }
     }
     func  toggleControls () {
-        setControlsHidden(!areControlsHidden(), animated: true, permanent: false)
+        setControlsHidden(hidden: !areControlsHidden(), animated: true, permanent: false)
     }
     
     // MARK: - NSObject
-    private func releaseAllUnderlyingPhotos() {
+    fileprivate func releaseAllUnderlyingPhotos() {
         for obj in photos {
             obj.unloadUnderlyingImage()
         }
     }
     
     // MARK: - Data
-    private func numberOfPhotos() -> Int {
+    fileprivate func numberOfPhotos() -> Int {
         return photos.count
     }
     
-    private func captionViewForPhotoAtIndex(index: Int) -> SSCaptionView! {
+    fileprivate func captionViewForPhotoAtIndex(index: Int) -> SSCaptionView! {
         var captionView:SSCaptionView! = delegate?.photoBrowser?(self, captionViewForPhotoAtIndex: index)
         if captionView == nil {
-            let photo = photoAtIndex(index)
+            let photo = photoAtIndex(index: index)
             if let _ = photo.caption() {
                 captionView = SSCaptionView(aPhoto: photo)
                 captionView.alpha = areControlsHidden() ? 0 : 1
@@ -627,19 +627,19 @@ extension SSImageBrowser {
     }
     
     
-    private func loadAdjacentPhotosIfNecessary(photo :SSPhoto) {
-        if let page = pageDisplayingPhoto(photo) {
-            let pageIndex = PAGE_INDEX(page)
+    fileprivate func loadAdjacentPhotosIfNecessary(photo :SSPhoto) {
+        if let page = pageDisplayingPhoto(photo: photo) {
+            let pageIndex = PAGE_INDEX(page: page)
             if currentPageIndex == pageIndex {
                 if pageIndex > 0 {
-                    let photo = photoAtIndex(pageIndex - 1)
+                    let photo = photoAtIndex(index: pageIndex - 1)
                     if photo.underlyingImage() == nil {
                         photo.loadUnderlyingImageAndNotify()
                     }
                 }
                 let count = numberOfPhotos()
                 if pageIndex < count - 1 {
-                    let photo = photoAtIndex(pageIndex + 1)
+                    let photo = photoAtIndex(index: pageIndex + 1)
                     if photo.underlyingImage() == nil {
                         photo.loadUnderlyingImageAndNotify()
                     }
@@ -650,45 +650,45 @@ extension SSImageBrowser {
     
     // MARK: - General
     
-    private func prepareForClosePhotoBrowser() {
+    fileprivate func prepareForClosePhotoBrowser() {
         // Gesture
         applicationWindow.removeGestureRecognizer(panGesture)
         autoHide = false
         
         // Controls
-        NSObject.cancelPreviousPerformRequestsWithTarget(self)
+        NSObject.cancelPreviousPerformRequests(withTarget: self)
     }
     
-    private func dismissPhotoBrowserAnimated(animated: Bool) {
-        modalTransitionStyle = .CrossDissolve
+    fileprivate func dismissPhotoBrowserAnimated(animated: Bool) {
+        modalTransitionStyle = .crossDissolve
         delegate?.photoBrowser?(self, willDismissAtPageIndex: currentPageIndex)
-        dismissViewControllerAnimated(animated, completion: {[weak self] in
+        dismiss(animated: animated, completion: {[weak self] in
             guard let sself = self else { return }
             sself.delegate?.photoBrowser?(sself, didDismissAtPageIndex: sself.currentPageIndex)
         })
     }
     
-    private func getImageFromView(view: UIView) -> UIImage {
+    fileprivate func getImageFromView(view: UIView) -> UIImage {
         UIGraphicsBeginImageContext(view.frame.size)
         if let context = UIGraphicsGetCurrentContext() {
-            view.layer.renderInContext(context)
+            view.layer.render(in: context)
         }
         let image = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
-        return image
+        return image!
     }
-    private func customToolbarButtonImage(image:UIImage, imageSelected selectedImage:UIImage, action: Selector) -> UIButton {
-        let button = UIButton(type: .Custom)
-        button.setBackgroundImage(image, forState: .Normal)
-        button.setBackgroundImage(selectedImage, forState: .Disabled)
-        button.addTarget(self, action: action, forControlEvents: .TouchUpInside)
-        button.contentMode = .Center
-        button.frame = CGRectMake(0,0, image.size.width/2, image.size.height/2)
+    fileprivate func customToolbarButtonImage(image:UIImage, imageSelected selectedImage:UIImage, action: Selector) -> UIButton {
+        let button = UIButton(type: .custom)
+        button.setBackgroundImage(image, for: .normal)
+        button.setBackgroundImage(selectedImage, for: .disabled)
+        button.addTarget(self, action: action, for: .touchUpInside)
+        button.contentMode = .center
+        button.frame = CGRect(x: 0, y: 0, width: image.size.width/2, height: image.size.height/2)
         return button
     }
     
-    private func  topviewController() -> UIViewController! {
-        var topviewController = UIApplication.sharedApplication().keyWindow?.rootViewController
+    fileprivate func  topviewController() -> UIViewController! {
+        var topviewController = UIApplication.shared.keyWindow?.rootViewController
         while topviewController?.presentedViewController != nil {
             topviewController = topviewController?.presentedViewController
         }
@@ -697,47 +697,47 @@ extension SSImageBrowser {
     
     // MARK: - Animation
     
-    private func rotateImageToCurrentOrientation(image: UIImage) -> UIImage? {
-        let o = UIApplication.sharedApplication().statusBarOrientation
+    fileprivate func rotateImageToCurrentOrientation(image: UIImage) -> UIImage? {
+        let o = UIApplication.shared.statusBarOrientation
         if UIInterfaceOrientationIsLandscape(o) {
-            let orientation = o == .LandscapeLeft ? UIImageOrientation.Left : UIImageOrientation.Right
+            let orientation = o == .landscapeLeft ? UIImageOrientation.left : UIImageOrientation.right
             
-            guard let cgImage = image.CGImage else {
+            guard let cgImage = image.cgImage else {
                 return nil
             }
             
-            let rotatedImage = UIImage(CGImage: cgImage, scale: 1.0, orientation: orientation)
+            let rotatedImage = UIImage(cgImage: cgImage, scale: 1.0, orientation: orientation)
             return rotatedImage
         }
         return image
     }
     
-    private func performPresentAnimation() {
+    fileprivate func performPresentAnimation() {
         view.alpha = 0.0
         pagingScrollView.alpha = 0.0
         
         if nil != senderViewForAnimation {
-            var imageFromView = scaleImage != nil ? scaleImage : getImageFromView(senderViewForAnimation)
+            var imageFromView = scaleImage != nil ? scaleImage : getImageFromView(view: senderViewForAnimation)
             
-            imageFromView = rotateImageToCurrentOrientation(imageFromView)
+            imageFromView = rotateImageToCurrentOrientation(image: imageFromView!)
             
-            senderViewOriginalFrame = senderViewForAnimation.superview?.convertRect(senderViewForAnimation.frame, toView: nil)
+            senderViewOriginalFrame = senderViewForAnimation.superview?.convert(senderViewForAnimation.frame, to: nil)
             
-            let screenBound = UIScreen.mainScreen().bounds
+            let screenBound = UIScreen.main.bounds
             let screenWidth = screenBound.size.width
             let screenHeight = screenBound.size.height
             
-            let fadeView = UIView(frame:CGRectMake(0, 0, screenWidth, screenHeight))
-            fadeView.backgroundColor = UIColor.clearColor()
+            let fadeView = UIView(frame:CGRect(x: 0, y: 0, width: screenWidth, height: screenHeight))
+            fadeView.backgroundColor = UIColor.clear
             applicationWindow.addSubview(fadeView)
             
             let resizableImageView             = UIImageView(image:imageFromView)
             resizableImageView.frame           = senderViewOriginalFrame
             resizableImageView.clipsToBounds   = true
-            resizableImageView.contentMode     = .ScaleAspectFit
+            resizableImageView.contentMode     = .scaleAspectFit
             resizableImageView.backgroundColor = UIColor(white: useWhiteBackgroundColor ? 1 : 0, alpha:1)
             applicationWindow.addSubview(resizableImageView)
-            senderViewForAnimation?.hidden     = true
+            senderViewForAnimation?.isHidden     = true
             
             typealias Completion = ()->()
             let completion: Completion = {[weak self] in
@@ -748,17 +748,17 @@ extension SSImageBrowser {
                 fadeView.removeFromSuperview()
                 resizableImageView.removeFromSuperview()
             }
-            UIView.animateWithDuration(NSTimeInterval(animationDuration), animations: { () -> Void in
-                fadeView.backgroundColor = self.useWhiteBackgroundColor ? UIColor.whiteColor() : UIColor.blackColor()
+            UIView.animate(withDuration: TimeInterval(animationDuration), animations: { () -> Void in
+                fadeView.backgroundColor = self.useWhiteBackgroundColor ? UIColor.white : UIColor.black
             })
             
-            let scaleFactor = (imageFromView != nil ? imageFromView.size.width : screenWidth) / screenWidth
-            let finalImageViewFrame = CGRectMake(0, (screenHeight/2)-((imageFromView.size.height / scaleFactor)/2), screenWidth, imageFromView.size.height / scaleFactor)
+            let scaleFactor = (imageFromView != nil ? (imageFromView?.size.width)! : screenWidth) / screenWidth
+            let finalImageViewFrame = CGRect(x: 0, y: (screenHeight/2)-(((imageFromView?.size.height)! / scaleFactor)/2), width: screenWidth, height: (imageFromView?.size.height)! / scaleFactor)
             
             if usePopAnimation {
-                animateView(resizableImageView, toFrame: finalImageViewFrame, completion: completion)
+                animateView(view: resizableImageView, toFrame: finalImageViewFrame, completion: completion)
             } else {
-                UIView.animateWithDuration(NSTimeInterval(animationDuration), animations: { () -> Void in
+                UIView.animate(withDuration: TimeInterval(animationDuration), animations: { () -> Void in
                     resizableImageView.layer.frame = finalImageViewFrame
                     }, completion: { (b) -> Void in
                         if b {
@@ -773,7 +773,7 @@ extension SSImageBrowser {
         
     }
     
-    private func performCloseAnimationWithScrollView(scrollView: SSZoomingScrollView) {
+    fileprivate func performCloseAnimationWithScrollView(scrollView: SSZoomingScrollView) {
         let fadeAlpha = 1 - fabs(scrollView.frame.origin.y)/scrollView.frame.size.height
         
         var imageFromView = scrollView.photo.underlyingImage()
@@ -784,12 +784,12 @@ extension SSImageBrowser {
         typealias Completion = ()->()
         let completion: Completion = {[weak self] in
             guard let sself = self else { return }
-            sself.senderViewForAnimation?.hidden = false
+            sself.senderViewForAnimation?.isHidden = false
             sself.senderViewForAnimation = nil
             sself.scaleImage = nil
             
             sself.prepareForClosePhotoBrowser()
-            sself.dismissPhotoBrowserAnimated(false)
+            sself.dismissPhotoBrowserAnimated(animated: false)
         }
         
         
@@ -800,29 +800,29 @@ extension SSImageBrowser {
         
         //imageFromView = [self rotateImageToCurrentOrientation:imageFromView]
         
-        let screenBound = UIScreen.mainScreen().bounds
+        let screenBound = UIScreen.main.bounds
         let screenWidth = screenBound.size.width
         let screenHeight = screenBound.size.height
         
-        let scaleFactor = imageFromView.size.width / screenWidth
+        let scaleFactor = (imageFromView?.size.width)! / screenWidth
         
-        let fadeView = UIView(frame:CGRectMake(0, 0, screenWidth, screenHeight))
-        fadeView.backgroundColor = self.useWhiteBackgroundColor ? UIColor.whiteColor() : UIColor.blackColor()
+        let fadeView = UIView(frame:CGRect(x: 0, y: 0, width: screenWidth, height: screenHeight))
+        fadeView.backgroundColor = self.useWhiteBackgroundColor ? UIColor.white : UIColor.black
         fadeView.alpha = fadeAlpha
         applicationWindow.addSubview(fadeView)
         
         let resizableImageView = UIImageView(image:imageFromView)
-        resizableImageView.frame = imageFromView != nil ? CGRectMake(0, (screenHeight/2)-((imageFromView.size.height / scaleFactor)/2)+scrollView.frame.origin.y, screenWidth, imageFromView.size.height / scaleFactor) : CGRectZero
-        resizableImageView.contentMode = UIViewContentMode.ScaleAspectFit
-        resizableImageView.backgroundColor = UIColor.clearColor()
+        resizableImageView.frame = imageFromView != nil ? CGRect(x: 0, y: (screenHeight/2)-((imageFromView!.size.height / scaleFactor)/2)+scrollView.frame.origin.y, width: screenWidth, height: imageFromView!.size.height / scaleFactor) : .zero
+        resizableImageView.contentMode = UIViewContentMode.scaleAspectFit
+        resizableImageView.backgroundColor = UIColor.clear
         resizableImageView.clipsToBounds = true
         applicationWindow.addSubview(resizableImageView)
-        self.view.hidden = true
+        self.view.isHidden = true
         
         
         let bcompletion: Completion = {[weak self] in
             guard let sself = self else { return }
-            sself.senderViewForAnimation?.hidden = false
+            sself.senderViewForAnimation?.isHidden = false
             sself.senderViewForAnimation = nil
             sself.scaleImage = nil
             
@@ -830,20 +830,20 @@ extension SSImageBrowser {
             resizableImageView.removeFromSuperview()
             
             sself.prepareForClosePhotoBrowser()
-            sself.dismissPhotoBrowserAnimated(false)
+            sself.dismissPhotoBrowserAnimated(animated: false)
         }
-        UIView.animateWithDuration(NSTimeInterval(animationDuration), animations: { () -> Void in
+        UIView.animate(withDuration: TimeInterval(animationDuration), animations: { () -> Void in
             fadeView.alpha = 0
-            self.view.backgroundColor = UIColor.clearColor()
+            self.view.backgroundColor = UIColor.clear
         })
         
         if usePopAnimation {
-            let edge = UIScreen.mainScreen().bounds.height
+            let edge = UIScreen.main.bounds.height
             debugPrint("senderViewOriginalFrame:\(senderViewOriginalFrame)")
-            let fromFrame = senderViewOriginalFrame ?? CGRectOffset(resizableImageView.frame, 0, edge)
-            animateView(resizableImageView, toFrame: fromFrame, completion: bcompletion)
+            let fromFrame = senderViewOriginalFrame ?? resizableImageView.frame.offsetBy(dx: 0, dy: edge)
+            animateView(view: resizableImageView, toFrame: fromFrame, completion: bcompletion)
         } else {
-            UIView.animateWithDuration(NSTimeInterval(animationDuration), animations: { () -> Void in
+            UIView.animate(withDuration: TimeInterval(animationDuration), animations: { () -> Void in
                 resizableImageView.layer.frame = self.senderViewOriginalFrame
                 }, completion: { (b) -> Void in
                     if b {
@@ -856,13 +856,13 @@ extension SSImageBrowser {
     
     // MARK: - Layout
     
-    private func performLayout() {
+    fileprivate func performLayout() {
 
         performingLayout = true
         let photosCount = numberOfPhotos()
         
-        visiblePages?.removeAll(keepCapacity: false)
-        recycledPages?.removeAll(keepCapacity: false)
+        visiblePages?.removeAll(keepingCapacity: false)
+        recycledPages?.removeAll(keepingCapacity: false)
         
         
         if displayToolbar {
@@ -875,10 +875,10 @@ extension SSImageBrowser {
             view.addSubview(doneButton)
         }
         
-        let fixedLeftSpace = UIBarButtonItem(barButtonSystemItem: .FixedSpace, target: self, action: nil)
+        let fixedLeftSpace = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: self, action: nil)
         fixedLeftSpace.width = 32
         
-        let flexSpace = UIBarButtonItem(barButtonSystemItem: .FlexibleSpace, target: self, action: nil)
+        let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
         
         var items = [UIBarButtonItem]()
         
@@ -913,7 +913,7 @@ extension SSImageBrowser {
         
         updateToolbar()
         
-        pagingScrollView.contentOffset = contentOffsetForPageAtIndex(currentPageIndex)
+        pagingScrollView.contentOffset = contentOffsetForPageAtIndex(index: currentPageIndex)
         tilePages()
         performingLayout = false
         
@@ -923,30 +923,30 @@ extension SSImageBrowser {
     }
     
     // MARK: - Toolbar
-    private func updateToolbar() {
+    fileprivate func updateToolbar() {
         // Counter
         let count = numberOfPhotos()
         if count > 1 {
-            counterLabel.text = "\(currentPageIndex + 1) "+SSPhotoBrowserLocalizedStrings("of")+" \(count)"
+            counterLabel.text = "\(currentPageIndex + 1) "+SSPhotoBrowserLocalizedStrings(key: "of")+" \(count)"
         } else {
             counterLabel.text = nil
         }
         
         // Buttons
-        previousButton.enabled = currentPageIndex > 0
-        nextButton.enabled = currentPageIndex < count - 1
+        previousButton.isEnabled = currentPageIndex > 0
+        nextButton.isEnabled = currentPageIndex < count - 1
     }
     
-    private func jumpToPageAtIndex(index: Int) {
+    fileprivate func jumpToPageAtIndex(index: Int) {
         // Change page
         let count = numberOfPhotos()
         if index < count {
-            let pageFrame = frameForPageAtIndex(index)
+            let pageFrame = frameForPageAtIndex(index: index)
             
             if arrowButtonsChangePhotosAnimated {
-                pagingScrollView.setContentOffset(CGPointMake(pageFrame.origin.x - PADDING, 0), animated: true)
+                pagingScrollView.setContentOffset(CGPoint(x: pageFrame.origin.x - PADDING, y: 0), animated: true)
             } else {
-                pagingScrollView.contentOffset = CGPointMake(pageFrame.origin.x - PADDING, 0)
+                pagingScrollView.contentOffset = CGPoint(x: pageFrame.origin.x - PADDING, y: 0)
                 updateToolbar()
             }
         }
@@ -956,47 +956,47 @@ extension SSImageBrowser {
     }
     
     func gotoPreviousPage() {
-        jumpToPageAtIndex(currentPageIndex - 1)
+        jumpToPageAtIndex(index: currentPageIndex - 1)
     }
     
     func gotoNextPage() {
-        jumpToPageAtIndex(currentPageIndex + 1)
+        jumpToPageAtIndex(index: currentPageIndex + 1)
     }
     
     // MARK: - Frame Calculations
     
-    private func isLandscape(orientation: UIInterfaceOrientation) -> Bool
+    fileprivate func isLandscape(orientation: UIInterfaceOrientation) -> Bool
     {
         return UIInterfaceOrientationIsLandscape(orientation)
     }
     
-    private func frameForToolbarAtOrientation(orientation: UIInterfaceOrientation) -> CGRect{
+    fileprivate func frameForToolbarAtOrientation(orientation: UIInterfaceOrientation) -> CGRect{
         var height: CGFloat = 44
         
-        if isLandscape(orientation) {
+        if isLandscape(orientation: orientation) {
             height = 32
         }
         
-        return CGRectMake(0, view.bounds.size.height - height, view.bounds.size.width, height)
+        return CGRect(x: 0, y : view.bounds.size.height - height, width: view.bounds.size.width, height: height)
     }
     
-    private func frameForDoneButtonAtOrientation(orientation: UIInterfaceOrientation) -> CGRect {
+    fileprivate func frameForDoneButtonAtOrientation(orientation: UIInterfaceOrientation) -> CGRect {
         let screenBound = view.bounds
         let screenWidth = screenBound.size.width
-        return CGRectMake(screenWidth - 75, 30, 55, 26)
+        return CGRect(x: screenWidth - 75, y: 30, width: 55, height: 26)
     }
     
-    private func frameForCaptionView(captionView: SSCaptionView, atIndex index: Int) -> CGRect {
-        let pageFrame = frameForPageAtIndex(index)
+    fileprivate func frameForCaptionView(captionView: SSCaptionView, atIndex index: Int) -> CGRect {
+        let pageFrame = frameForPageAtIndex(index: index)
         
-        let captionSize = captionView.sizeThatFits(CGSizeMake(pageFrame.size.width, 0))
+        let captionSize = captionView.sizeThatFits(CGSize(width: pageFrame.size.width, height: 0))
         
-        let captionFrame = CGRectMake(pageFrame.origin.x, pageFrame.size.height - captionSize.height - (toolbar.superview != nil ?toolbar.frame.size.height:0), pageFrame.size.width, captionSize.height)
+        let captionFrame = CGRect(x: pageFrame.origin.x, y: pageFrame.size.height - captionSize.height - (toolbar.superview != nil ?toolbar.frame.size.height:0), width: pageFrame.size.width, height: captionSize.height)
         
         return captionFrame
     }
     
-    private func frameForPageAtIndex(index: Int) -> CGRect {
+    fileprivate func frameForPageAtIndex(index: Int) -> CGRect {
         // We have to use our paging scroll view's bounds, not frame, to calculate the page placement. When the device is in
         // landscape orientation, the frame will still be in portrait because the pagingScrollView is the root view controller's
         // view, so its frame is in window coordinate space, which is never rotated. Its bounds, however, will be in landscape
@@ -1009,37 +1009,37 @@ extension SSImageBrowser {
     }
     
     
-    private func contentSizeForPagingScrollView() -> CGSize{
+    fileprivate func contentSizeForPagingScrollView() -> CGSize{
         // We have to use the paging scroll view's bounds to calculate the contentSize, for the same reason outlined above.
         let bounds = pagingScrollView.bounds
         let count = numberOfPhotos()
-        return CGSizeMake(bounds.size.width *  CGFloat(count), bounds.size.height)
+        return CGSize(width: bounds.size.width *  CGFloat(count), height: bounds.size.height)
     }
-    private func frameForPagingScrollView() -> CGRect {
+    fileprivate func frameForPagingScrollView() -> CGRect {
         var frame = view.bounds
         frame.origin.x -= PADDING
         frame.size.width += 2 * PADDING
         return frame
     }
     
-    private func contentOffsetForPageAtIndex(index: Int) -> CGPoint{
+    fileprivate func contentOffsetForPageAtIndex(index: Int) -> CGPoint{
         let pageWidth = pagingScrollView.bounds.size.width
         let newOffset = CGFloat(index) * pageWidth
-        return CGPointMake(newOffset, 0)
+        return CGPoint(x: newOffset, y: 0)
     }
     
     // MARK: - Paging
     
-    private func pageDisplayedAtIndex(index: Int) -> SSZoomingScrollView! {
+    fileprivate func pageDisplayedAtIndex(index: Int) -> SSZoomingScrollView! {
         for  page in visiblePages {
-            if  PAGE_INDEX(page) == index {
+            if  PAGE_INDEX(page: page) == index {
                 return page
             }
         }
         return nil
     }
     
-    private func pageDisplayingPhoto(photo: SSPhoto) -> SSZoomingScrollView! {
+    fileprivate func pageDisplayingPhoto(photo: SSPhoto) -> SSZoomingScrollView! {
         var aPage: SSZoomingScrollView!
         for  page in visiblePages {
             if let bPhoto = page.photo {
@@ -1051,9 +1051,9 @@ extension SSImageBrowser {
         return aPage
     }
     
-    private func isDisplayingPageForIndex(index: Int) -> Bool {
+    fileprivate func isDisplayingPageForIndex(index: Int) -> Bool {
         for page in visiblePages {
-            let pageIndex = PAGE_INDEX(page)
+            let pageIndex = PAGE_INDEX(page: page)
             if pageIndex == index {
                 return true
             }
@@ -1061,19 +1061,19 @@ extension SSImageBrowser {
         return false
     }
     
-    private func configurePage(page: SSZoomingScrollView, forIndex index: Int) {
-        page.frame = frameForPageAtIndex(index)
+    fileprivate func configurePage(page: SSZoomingScrollView, forIndex index: Int) {
+        page.frame = frameForPageAtIndex(index: index)
         page.tag = PAGE_INDEX_TAG_OFFSET + index
-        page.setAPhoto(photoAtIndex(index))
+        page.setAPhoto(aPhoto: photoAtIndex(index: index))
         page.photo?.progressUpdateBlock = {[unowned page]
             (progress) -> Void in
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                page.setProgress(progress, forPhoto: page.photo)
-            })
+            DispatchQueue.main.async {
+                page.setProgress(progress: progress, forPhoto: page.photo)
+            }
         }
     }
     
-    private func dequeueRecycledPage() -> SSZoomingScrollView! {
+    fileprivate func dequeueRecycledPage() -> SSZoomingScrollView! {
         let page = recycledPages.first
         if page != nil {
             recycledPages.remove(page!)
@@ -1081,21 +1081,21 @@ extension SSImageBrowser {
         return page
     }
     
-    private func didStartViewingPageAtIndex(index: Int) {
+    fileprivate func didStartViewingPageAtIndex(index: Int) {
         // Load adjacent images if needed and the photo is already
         // loaded. Also called after photo has been loaded in background
-        let currentPhoto = photoAtIndex(index)
+        let currentPhoto = photoAtIndex(index: index)
         if currentPhoto.underlyingImage() != nil {
             // photo loaded so load ajacent now
-            loadAdjacentPhotosIfNecessary(currentPhoto)
+            loadAdjacentPhotosIfNecessary(photo: currentPhoto)
         }
         delegate?.photoBrowser?(self, didShowPhotoAtIndex: index)
     }
     
-    private func tilePages() {
+    fileprivate func tilePages() {
         let visibleBounds = pagingScrollView.bounds
-        var iFirstIndex = Int(floor((CGRectGetMinX(visibleBounds)+PADDING*2) / CGRectGetWidth(visibleBounds)))
-        var iLastIndex  = Int(floor((CGRectGetMaxX(visibleBounds)-PADDING*2-1) / CGRectGetWidth(visibleBounds)))
+        var iFirstIndex = Int(floor((visibleBounds.minX+PADDING*2) / visibleBounds.width))
+        var iLastIndex  = Int(floor((visibleBounds.maxX-PADDING*2-1) / visibleBounds.width))
         let phototCount = numberOfPhotos()
         if iFirstIndex < 0 {
             iFirstIndex = 0
@@ -1112,14 +1112,14 @@ extension SSImageBrowser {
         // Recycle no longer needed pages
         var pageIndex: Int = 0
         for page in visiblePages {
-            pageIndex = PAGE_INDEX(page)
+            pageIndex = PAGE_INDEX(page: page)
             if pageIndex < iFirstIndex || pageIndex > iLastIndex {
                 recycledPages.insert(page)
                 page.prepareForReuse()
                 page.removeFromSuperview()
             }
         }
-        let _ = visiblePages.exclusiveOr(recycledPages)
+        let _ = visiblePages.symmetricDifference(recycledPages)
         
         var pages = Set<SSZoomingScrollView>()
         if recycledPages.count > 2 {
@@ -1134,16 +1134,16 @@ extension SSImageBrowser {
         // Add missing pages
         
         for index in iFirstIndex...iLastIndex {
-            if !isDisplayingPageForIndex(index) {
+            if !isDisplayingPageForIndex(index: index) {
                 let page = SSZoomingScrollView(aPhotoBrowser: self)
-                page.backgroundColor = UIColor.clearColor()
-                page.opaque = true
-                configurePage(page, forIndex: index)
+                page.backgroundColor = UIColor.clear
+                page.isOpaque = true
+                configurePage(page: page, forIndex: index)
                 visiblePages.insert(page)
                 pagingScrollView.addSubview(page)
                 
-                if let captionView = captionViewForPhotoAtIndex(index) {
-                    captionView.frame = frameForCaptionView(captionView, atIndex: index)
+                if let captionView = captionViewForPhotoAtIndex(index: index) {
+                    captionView.frame = frameForCaptionView(captionView: captionView, atIndex: index)
                     pagingScrollView.addSubview(captionView)
                     page.captionView = captionView
                 }
@@ -1155,26 +1155,26 @@ extension SSImageBrowser {
     // MARK: - Buttons
     func doneButtonPressed() {
         if  senderViewForAnimation != nil && currentPageIndex == initalPageIndex {
-            let scrollView = pageDisplayedAtIndex(currentPageIndex)
-            performCloseAnimationWithScrollView(scrollView)
+            let scrollView = pageDisplayedAtIndex(index: currentPageIndex)
+            performCloseAnimationWithScrollView(scrollView: scrollView!)
         }
         else {
-            senderViewForAnimation?.hidden = false
+            senderViewForAnimation?.isHidden = false
             prepareForClosePhotoBrowser()
-            dismissPhotoBrowserAnimated(true)
+            dismissPhotoBrowserAnimated(animated: true)
         }
         
     }
     
-    func actionButtonPressed(sender:AnyObject) {
-        let photo = photoAtIndex(currentPageIndex)
+    func actionButtonPressed(_ sender:AnyObject) {
+        let photo = photoAtIndex(index: currentPageIndex)
         let count = self.numberOfPhotos()
         if count > 0 && photo.underlyingImage() != nil {
             if actionButtonTitles.count == 0 {
                 if let image = photo.underlyingImage() {
                     var activityItems: [AnyObject] = [image]
                     if let caption = photo.caption() {
-                        activityItems.append(caption)
+                        activityItems.append(caption as AnyObject)
                     }
                     
                     activityViewController = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
@@ -1183,19 +1183,19 @@ extension SSImageBrowser {
                         (activityType, completed, returnedItems, activityError) -> Void in
                         guard let sself = self else { return }
                         sself.hideControlsAfterDelay()
-                        if activityType == "com.apple.UIKit.activity.SaveToCameraRoll" {
-                            NSNotificationCenter.defaultCenter().postNotificationName(UIApplicationSaveImageToCameraRoll, object: sself)
+                        if activityType?.rawValue == "com.apple.UIKit.activity.SaveToCameraRoll" {
+                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: UIApplicationSaveImageToCameraRoll), object: sself)
                         }
                         sself.activityViewController = nil
                     }
-                    presentViewController(activityViewController, animated: true, completion: nil)
+                    present(activityViewController, animated: true, completion: nil)
                 }
                 
             }else{
                 // Action sheet
-                actionsSheet = UIAlertController(title: nil, message: nil, preferredStyle: UIAlertControllerStyle.ActionSheet)
-                for (index, atitle) in actionButtonTitles.enumerate() {
-                    let action = UIAlertAction(title: atitle, style: UIAlertActionStyle.Default, handler:{[weak self]
+                actionsSheet = UIAlertController(title: nil, message: nil, preferredStyle: UIAlertControllerStyle.actionSheet)
+                for (index, atitle) in actionButtonTitles.enumerated() {
+                    let action = UIAlertAction(title: atitle, style: UIAlertActionStyle.default, handler:{[weak self]
                         (aAction) -> Void in
                         guard let sself = self else { return }
                         sself.actionsSheet = nil
@@ -1204,30 +1204,30 @@ extension SSImageBrowser {
                     })
                     actionsSheet.addAction(action)
                 }
-                let action = UIAlertAction(title: SSPhotoBrowserLocalizedStrings("Cancel"), style: UIAlertActionStyle.Cancel, handler:{[weak self]
+                let action = UIAlertAction(title: SSPhotoBrowserLocalizedStrings(key: "Cancel"), style: UIAlertActionStyle.cancel, handler:{[weak self]
                     (aAction) -> Void in
                     guard let sself = self else { return }
                     sself.actionsSheet = nil
                     sself.hideControlsAfterDelay()
                 })
                 actionsSheet.addAction(action)
-                presentViewController(actionsSheet, animated: true, completion: nil)
+                present(actionsSheet, animated: true, completion: nil)
                 
             }
             
         }
-        setControlsHidden(false, animated: true, permanent: true)
+        setControlsHidden(hidden: false, animated: true, permanent: true)
     }
     
     // MARK: - pop Animation
     
-    private func animateView(view: UIView, toFrame frame: CGRect, completion: (()->())! ) {
+    fileprivate func animateView(view: UIView, toFrame frame: CGRect, completion: (()->())! ) {
         let ainamtion              = POPSpringAnimation(propertyNamed: kPOPViewFrame)
-        ainamtion.springBounciness = 6
-        ainamtion.dynamicsMass     = 1
-        ainamtion.toValue          = NSValue(CGRect: frame)
-        view.pop_addAnimation(ainamtion, forKey: nil)
-        ainamtion.completionBlock = {
+        ainamtion?.springBounciness = 6
+        ainamtion?.dynamicsMass     = 1
+        ainamtion?.toValue          = NSValue(cgRect: frame)
+        view.pop_add(ainamtion, forKey: nil)
+        ainamtion?.completionBlock = {
             (aniamte,finish) in
             completion?()
         }
@@ -1237,9 +1237,9 @@ extension SSImageBrowser {
 
 extension SSImageBrowser {
     
-    typealias CancelableTask = (cancel: Bool) -> Void
+    typealias CancelableTask = (_ cancel: Bool) -> Void
     
-    func delay(time: NSTimeInterval, work: dispatch_block_t) -> CancelableTask? {
+    func delay(time: TimeInterval, work: @escaping ((Void) -> ())) -> CancelableTask? {
 
         var finalTask: CancelableTask?
         
@@ -1247,22 +1247,23 @@ extension SSImageBrowser {
             if cancel {
                 finalTask = nil // key
             } else {
-                dispatch_async(dispatch_get_main_queue(), work)
+                DispatchQueue.main.async(execute: work)
             }
         }
         
         finalTask = cancelableTask
         
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(time * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
+        let deadline = DispatchTime.now() + time
+        DispatchQueue.main.asyncAfter(deadline: deadline) { 
             if let task = finalTask {
-                task(cancel: false)
+                task(false)
             }
         }
-        
+
         return finalTask
     }
     
     func cancel(cancelableTask: CancelableTask?) {
-        cancelableTask?(cancel: true)
+        cancelableTask?(true)
     }
 }

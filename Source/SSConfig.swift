@@ -18,33 +18,33 @@ func PAGE_INDEX(page: SSZoomingScrollView)->Int {
     return index
 }
 func SYSTEM_VERSION_EQUAL_TO(to:String) -> Bool{
-    let ver = UIDevice.currentDevice().systemVersion as NSString
-    return ver.compare(to, options: NSStringCompareOptions.NumericSearch) == NSComparisonResult.OrderedSame
+    let ver = UIDevice.current.systemVersion
+    return ver.compare(to, options: String.CompareOptions.numeric, range: nil, locale: nil) == ComparisonResult.orderedSame
 }
 
 func SYSTEM_VERSION_GREATER_THAN(to:String) -> Bool{
-    let ver = UIDevice.currentDevice().systemVersion as NSString
-    return ver.compare(to, options: NSStringCompareOptions.NumericSearch) == NSComparisonResult.OrderedDescending
+    let ver = UIDevice.current.systemVersion
+    return ver.compare(to, options: String.CompareOptions.numeric, range: nil, locale: nil) == ComparisonResult.orderedSame
 }
 
 func SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(to:String) -> Bool{
-    let ver = UIDevice.currentDevice().systemVersion as NSString
-    return ver.compare(to, options: NSStringCompareOptions.NumericSearch) != NSComparisonResult.OrderedAscending
+    let ver = UIDevice.current.systemVersion
+    return ver.compare(to, options: String.CompareOptions.numeric, range: nil, locale: nil) == ComparisonResult.orderedSame
 }
 
 func SYSTEM_VERSION_LESS_THAN(to:String) -> Bool{
-    let ver = UIDevice.currentDevice().systemVersion as NSString
-    return ver.compare(to, options: NSStringCompareOptions.NumericSearch) == NSComparisonResult.OrderedAscending
+    let ver = UIDevice.current.systemVersion
+    return ver.compare(to, options: String.CompareOptions.numeric, range: nil, locale: nil) == ComparisonResult.orderedSame
 }
 
 func SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(to:String) -> Bool{
-    let ver = UIDevice.currentDevice().systemVersion as NSString
-    return ver.compare(to, options: NSStringCompareOptions.NumericSearch) != NSComparisonResult.OrderedDescending
+    let ver = UIDevice.current.systemVersion
+    return ver.compare(to, options: String.CompareOptions.numeric, range: nil, locale: nil) == ComparisonResult.orderedSame
 }
 
 func SSPhotoBrowserLocalizedStrings(key: String) -> String{
-    if let path = NSBundle(forClass: SSImageBrowser.self).pathForResource("IDMPBLocalizations", ofType: "bundle") {
-        if let bundle = NSBundle(path: path) {
+    if let path = Bundle(for: SSImageBrowser.self).path(forResource: "IDMPBLocalizations", ofType: "bundle") {
+        if let bundle = Bundle(path: path) {
             return NSLocalizedString(key, bundle: bundle, comment: key)
         }
         

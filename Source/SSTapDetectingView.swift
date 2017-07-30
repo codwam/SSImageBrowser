@@ -9,9 +9,9 @@
 import UIKit
 
 public protocol SSTapDetectingViewDelegate: class {
-    func view(view: UIView, singleTapDetected touch: UITouch)
-    func view(view: UIView, doubleTapDetected touch: UITouch)
-    func view(view: UIView, tripleTapDetected touch: UITouch)
+    func view(_ view: UIView, singleTapDetected touch: UITouch)
+    func view(_ view: UIView, doubleTapDetected touch: UITouch)
+    func view(_ view: UIView, tripleTapDetected touch: UITouch)
 }
 public class SSTapDetectingView: UIImageView {
     public var tapDelegate: SSTapDetectingViewDelegate!
@@ -28,13 +28,13 @@ public class SSTapDetectingView: UIImageView {
     }
     
     func initialize() {
-        self.userInteractionEnabled = true
+        self.isUserInteractionEnabled = true
     }
     
 }
 extension SSTapDetectingView {
     
-    public override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else {
             return
         }
@@ -53,6 +53,6 @@ extension SSTapDetectingView {
         default:
             break
         }
-        self.nextResponder()?.touchesEnded(touches, withEvent: event)
+        self.next?.touchesEnded(touches, with: event)
     }
 }

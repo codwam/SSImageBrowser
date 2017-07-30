@@ -17,16 +17,16 @@ public class SSCaptionView: UIView {
     private var label: UILabel!
     
     convenience init(aPhoto:SSPhoto) {
-        let screenBound = UIScreen.mainScreen().bounds
+        let screenBound = UIScreen.main.bounds
         var screenWidth = screenBound.size.width
-        let orientation = UIDevice.currentDevice().orientation
-        if orientation == .LandscapeLeft ||
-            orientation == .LandscapeRight {
+        let orientation = UIDevice.current.orientation
+        if orientation == .landscapeLeft ||
+            orientation == .landscapeRight {
                 screenWidth = screenBound.size.height
         }
-        self.init(frame: CGRectMake(0, 0, screenWidth, 44))
+        self.init(frame: CGRect(x: 0, y: 0, width: screenWidth, height: 44))
         photo = aPhoto
-        opaque = false
+        isOpaque = false
         setBackground()
         setupCaption()
     }
@@ -42,7 +42,7 @@ public class SSCaptionView: UIView {
     public override func layoutSubviews() {
         super.layoutSubviews()
         if let view = viewWithTag(101) {
-            view.frame = CGRectMake(0, -100, UIScreen.mainScreen().bounds.width, 130+100)
+            view.frame = CGRect(x: 0, y: -100, width: UIScreen.main.bounds.width, height: 130+100)
         }
         
     }
@@ -60,17 +60,17 @@ public class SSCaptionView: UIView {
     */
     public func setupCaption() {
         
-        label                  = UILabel(frame: CGRectMake(labelPadding, 0, self.bounds.size.width-labelPadding*2, self.bounds.size.height))
-        label.autoresizingMask = [.FlexibleWidth, .FlexibleHeight]
-        label.opaque           = false
-        label.backgroundColor  = UIColor.clearColor()
-        label.textAlignment    = .Center
-        label.lineBreakMode    = NSLineBreakMode.ByWordWrapping
+        label                  = UILabel(frame: CGRect(x: labelPadding, y: 0, width: self.bounds.size.width-labelPadding*2, height: self.bounds.size.height))
+        label.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        label.isOpaque           = false
+        label.backgroundColor  = UIColor.clear
+        label.textAlignment    = .center
+        label.lineBreakMode    = NSLineBreakMode.byWordWrapping
         label.numberOfLines    = 3
-        label.textColor        = UIColor.whiteColor()
+        label.textColor        = UIColor.white
         label.shadowColor      = UIColor(white: 0, alpha: 0.5)
-        label.shadowOffset     = CGSizeMake(0, 1)
-        label.font             = UIFont.systemFontOfSize(17)
+        label.shadowOffset     = CGSize(width: 0, height: 1)
+        label.font             = UIFont.systemFont(ofSize: 17)
         label.text             = ""
         if let cap = photo?.caption() {
             label.text = cap
@@ -88,14 +88,14 @@ public class SSCaptionView: UIView {
     
     :returns: CGSize
     */
-    public override func sizeThatFits(size: CGSize) -> CGSize {
+    public override func sizeThatFits(_ size: CGSize) -> CGSize {
         if label.text == nil  {
-            return CGSizeZero
+            return .zero
         }
         
         if let b = label.text?.isEmpty  {
             if b {
-                return CGSizeZero
+                return .zero
             }
         }
         
@@ -111,23 +111,23 @@ public class SSCaptionView: UIView {
 
         let attributedText = NSAttributedString(string: text, attributes: [NSFontAttributeName: font])
 
-        let rect           = attributedText.boundingRectWithSize(CGSizeMake(width, maxHeight), options: NSStringDrawingOptions.UsesLineFragmentOrigin, context: nil)
+        let rect           = attributedText.boundingRect(with: CGSize(width: width, height: maxHeight), options: NSStringDrawingOptions.usesLineFragmentOrigin, context: nil)
 
         let textSize       = rect.size
         
-        return CGSizeMake(size.width, textSize.height + labelPadding * 2)
+        return CGSize(width: size.width, height: textSize.height + labelPadding * 2)
     }
 }
 
 extension SSCaptionView {
     func setBackground() {
-        let fadeView = UIView(frame:CGRectMake(0, -100, UIScreen.mainScreen().bounds.width, 130+100)) // Static width, autoresizingMask is not working
+        let fadeView = UIView(frame:CGRect(x: 0, y: -100, width: UIScreen.main.bounds.width, height: 130+100)) // Static width, autoresizingMask is not working
         fadeView.tag = 101
         let gradient = CAGradientLayer()
         gradient.frame = fadeView.bounds
-        gradient.colors = [UIColor(white: 0, alpha: 0).CGColor,UIColor(white: 0, alpha: 0.8).CGColor]
-        fadeView.layer.insertSublayer(gradient, atIndex: 0)
-        fadeView.autoresizingMask = [.FlexibleWidth, .FlexibleHeight]
+        gradient.colors = [UIColor(white: 0, alpha: 0).cgColor,UIColor(white: 0, alpha: 0.8).cgColor]
+        fadeView.layer.insertSublayer(gradient, at: 0)
+        fadeView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(fadeView)
     }
     
